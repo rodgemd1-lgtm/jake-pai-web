@@ -752,5 +752,114 @@ document.addEventListener('keydown', e => {
   }
 });
 </script>
+
+// ═══════════════════════════════════════════════════════════
+// JAKE PAI — SUPABASE LIVE CONNECTION
+// ═══════════════════════════════════════════════════════════
+const SUPABASE_URL = 'https://zqsdadnnpgqhehqxplio.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpxc2RhZG5ucGdxaGVocXhwbGlvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ3NDQ4NDIsImV4cCI6MjA2MDMyMDg0Mn0.QMZ0w3t0eI7pL8aF6b0h8eLQ9j0a3RzGKd0eM8n5k1U';
+
+// Create Supabase client (using REST API directly since we can't load the JS library in static HTML)
+const sb = {
+  async from(table) {
+    return {
+      async select(columns='*', filters={}) {
+        const params = new URLSearchParams();
+        params.set('select', columns);
+        Object.entries(filters).forEach(([k,v]) => params.set(k, v));
+        const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${params}`, {
+          headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
+        });
+        return r.json();
+      },
+      async insert(rows) {
+        const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+          method: 'POST',
+          headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+          body: JSON.stringify(Array.isArray(rows) ? rows : [rows])
+        });
+        return r.json();
+      },
+      async update(id, data) {
+        const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
+          method: 'PATCH',
+          headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+          body: JSON.stringify(data)
+        });
+        return r.json();
+      }
+    };
+  }
+};
+
+// Load live data into dashboard
+async function loadLiveData() {
+  try {
+    // Load tasks
+    const tasks = await sb.from('jake_tasks').select('*');
+    if (tasks.length > 0) {
+      const taskList = document.getElementById('taskList');
+      if (taskList) {
+        taskList.innerHTML = tasks.slice(0, 10).map(t => `
+          <div class="task-item ${t.status === 'completed' ? 'done' : ''}" data-id="${t.id}" onclick="toggleTask('${t.id}', '${t.status}')">
+            <div class="task-check">${t.status === 'completed' ? '&#10003;' : ''}</div>
+            <div class="task-title">${t.title}</div>
+            <span class="task-telo-pill telo-pill ${t.telos_trace || 'p0'}">${t.telos_trace || 'P0'}</span>
+            <span class="task-score ${t.fixer_score >= 18 ? 'high' : 'low'}">${t.fixer_score || 0}/25</span>
+          </div>
+        `).join('');
+      }
+    }
+
+    // Load love notes
+    const notes = await sb.from('jake_semantic').select('content,metadata', { actual_category: 'eq.love_note_james' });
+    
+    // Load ventures
+    const ventures = await sb.from('jake_semantic').select('content,metadata', { actual_category: 'eq.venture' });
+
+    // Load niche opportunities
+    const niches = await sb.from('jake_semantic').select('content,metadata', { actual_category: 'eq.niche_opportunity' });
+
+    console.log('Live data loaded:', { tasks: tasks.length, notes: notes.length, ventures: ventures.length, niches: niches.length });
+  } catch (e) {
+    console.log('Using static data (Supabase connection pending):', e.message);
+  }
+}
+
+// Toggle task completion
+async function toggleTask(id, currentStatus) {
+  const newStatus = currentStatus === 'completed' ? 'pending' : 'completed';
+  try {
+    await sb.from('jake_tasks').update(id, { status: newStatus });
+    loadLiveData(); // Refresh
+  } catch(e) {
+    // Fallback: toggle visually
+    const el = document.querySelector(`[data-id="${id}"]`);
+    if (el) el.classList.toggle('done');
+  }
+}
+
+// Send chat message to Jake backend
+async function sendToJake(message) {
+  try {
+    // Store message in jake_semantic as conversation context
+    await sb.from('jake_semantic').insert({
+      content: message,
+      category: 'fact',
+      confidence: 1.0,
+      evidence_count: 1,
+      is_active: true,
+      project: 'jake-pai-chat',
+      topics: ['user_message'],
+      metadata: { actual_category: 'chat_message', role: 'user', timestamp: new Date().toISOString() }
+    });
+  } catch(e) {
+    console.log('Chat stored locally:', e.message);
+  }
+}
+
+// Load on page ready
+document.addEventListener('DOMContentLoaded', loadLiveData);
+
 </body>
 </html>
