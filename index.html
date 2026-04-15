@@ -586,6 +586,37 @@ body::before { content:''; position:fixed; inset:0; z-index:9999; pointer-events
       <div class="inbox-list" id="inboxList"></div>
     </div>
 
+    <!-- ═══ MIROSHARK: SWARM INTELLIGENCE ═══ -->
+    <div class="section" id="simulations">
+      <div class="section-header">
+        <h2>Swarm <span class="gradient">Intel</span></h2>
+        <p>MiroShark simulations. Upload a doc, spawn 50 agents, watch how the internet reacts.</p>
+      </div>
+      <div style="margin-bottom:16px">
+        <textarea id="simDocument" placeholder="Paste a press release, product announcement, or any document to simulate public reaction..." style="width:100%;height:120px;background:var(--bg-muted);border:1px solid var(--border);border-radius:8px;padding:12px;color:var(--text-primary);font-size:13px;resize:vertical;font-family:inherit"></textarea>
+        <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+          <input id="simTitle" placeholder="Simulation title..." style="flex:1;background:var(--bg-muted);border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--text-primary);font-size:13px;font-family:inherit">
+          <select id="simAgents" style="background:var(--bg-muted);border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--text-primary);font-size:13px;font-family:inherit">
+            <option value="25">25 agents</option>
+            <option value="50" selected>50 agents</option>
+            <option value="100">100 agents</option>
+            <option value="200">200 agents</option>
+          </select>
+          <button onclick="launchSimulation()" style="background:linear-gradient(135deg,var(--accent-purple),var(--accent-blue));color:#fff;border:none;border-radius:6px;padding:8px 16px;font-size:13px;cursor:pointer;font-family:inherit;font-weight:500">Launch Swarm</button>
+        </div>
+      </div>
+      <div id="simResults" style="min-height:60px"></div>
+    </div>
+
+    <!-- ═══ AEON: AUTONOMOUS SKILLS ═══ -->
+    <div class="section" id="aeon">
+      <div class="section-header">
+        <h2>Aeon <span class="gradient">Engine</span></h2>
+        <p>92 autonomous skills. Self-healing. Reactive. Runs while you sleep.</p>
+      </div>
+      <div id="aeonSkills" style="min-height:60px"></div>
+    </div>
+
     <!-- ═══ FOCUS ═══ -->
     <div class="section" id="focus">
       <div class="section-header">
@@ -2153,6 +2184,78 @@ function setupRealtime() {
   }
 }
 
+// ═══ MIROSHARK: SWARM INTELLIGENCE ═══
+async function launchSimulation() {
+  const doc = document.getElementById('simDocument').value.trim();
+  const title = document.getElementById('simTitle').value.trim() || 'Untitled Simulation';
+  const numAgents = parseInt(document.getElementById('simAgents').value);
+  if (!doc) { alert('Paste a document to simulate.'); return; }
+  const results = document.getElementById('simResults');
+  results.innerHTML = '<div style="padding:16px;text-align:center;color:var(--accent-purple)">Spawning '+numAgents+' agents... <span class="typing"><span></span><span></span><span></span></span></div>';
+  try {
+    const r = await sb.rpc('jake_simulate', { p_title: title, p_document: doc, p_platforms: ['twitter','reddit'], p_num_agents: numAgents });
+    if (r && r.length > 0) {
+      const simId = r[0].simulation_id;
+      results.innerHTML = '<div style="padding:16px;background:rgba(139,92,246,0.05);border:1px solid rgba(139,92,246,0.15);border-radius:8px"><div style="font-weight:600;color:var(--accent-purple)">Simulation Launched</div><div style="font-size:12px;color:var(--text-secondary);margin-top:4px">ID: '+simId+'</div><div style="font-size:12px;color:var(--text-secondary)">Status: Pending — agents are being generated</div><div style="font-size:11px;color:var(--text-muted);margin-top:8px">Jake will deliver the report via Telegram when complete. Check back in the Swarm Intel section.</div></div>';
+      document.getElementById('simDocument').value = '';
+      document.getElementById('simTitle').value = '';
+      // Poll for completion
+      let attempts = 0;
+      const pollInterval = setInterval(async () => {
+        attempts++;
+        if (attempts > 60) { clearInterval(pollInterval); return; }
+        try {
+          const sim = await sb.rpc('jake_get_simulation', { p_sim_id: simId });
+          if (sim && sim.length > 0 && sim[0].status === 'completed') {
+            clearInterval(pollInterval);
+            renderSimulationReport(sim[0]);
+          }
+        } catch(e) {}
+      }, 10000);
+    } else {
+      results.innerHTML = '<div style="padding:16px;color:var(--accent-red)">Failed to launch simulation. Check console.</div>';
+    }
+  } catch(err) {
+    results.innerHTML = '<div style="padding:16px;color:var(--accent-red)">Error: '+err.message+'</div>';
+  }
+}
+
+function renderSimulationReport(sim) {
+  const results = document.getElementById('simResults');
+  const report = sim.report || 'No report generated yet.';
+  results.innerHTML = '<div style="padding:16px;background:rgba(16,185,129,0.05);border:1px solid rgba(16,185,129,0.15);border-radius:8px"><div style="font-weight:600;color:var(--accent-green)">Simulation Complete: '+sim.title+'</div><div style="margin-top:12px;font-size:13px;line-height:1.6;white-space:pre-wrap">'+report.replace(/</g,'&lt;')+'</div></div>';
+}
+
+// ═══ AEON: AUTONOMOUS SKILLS ═══
+const aeonSkillCategories = {
+  'Jake Custom': ['jake-health-coach','jake-revenue-radar','jake-job-hunter','jake-family-check'],
+  'Morning Pipeline': ['morning-brief','daily-routine','startup-idea'],
+  'Research': ['deep-research','research-brief','paper-pick','hacker-news-digest'],
+  'GitHub & Code': ['pr-review','issue-triage','github-monitor','code-health','repo-pulse','changelog'],
+  'Security': ['security-digest','skill-security-scan','workflow-security-audit'],
+  'Evening': ['evening-recap','reflect'],
+  'Weekly': ['weekly-review','weekly-shiplog','goal-tracker','cost-report'],
+  'Meta / Self-Healing': ['heartbeat','self-improve','skill-health','skill-evals','skill-repair','skill-leaderboard'],
+  'Build & Deploy': ['deploy-prototype','create-skill','autoresearch'],
+  'Market Intel': ['deal-flow'],
+};
+
+function renderAeonSkills() {
+  const container = document.getElementById('aeonSkills');
+  if (!container) return;
+  let html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px">';
+  for (const [cat, skills] of Object.entries(aeonSkillCategories)) {
+    html += '<div style="grid-column:1/-1;font-weight:600;color:var(--accent-purple);font-size:11px;text-transform:uppercase;letter-spacing:1px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">'+cat+'</div>';
+    for (const skill of skills) {
+      const isCustom = skill.startsWith('jake-');
+      const badge = isCustom ? '<span style="background:linear-gradient(135deg,var(--accent-purple),var(--accent-blue));color:#fff;font-size:9px;padding:1px 6px;border-radius:4px;margin-left:4px">JAKE</span>' : '';
+      html += '<div style="background:var(--bg-muted);border:1px solid var(--border);border-radius:6px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between"><span style="font-size:12px;color:var(--text-primary)">'+skill.replace(/-/g,' ')+badge+'</span><span style="font-size:10px;color:var(--accent-green)">&#9679; active</span></div>';
+    }
+  }
+  html += '</div><div style="margin-top:12px;font-size:11px;color:var(--text-muted)">92 skills configured. Self-healing active. Reactive triggers armed. Powered by Aeon + GLM-5.1.</div>';
+  container.innerHTML = html;
+}
+
 // ═══ INIT ═══
 function init() {
   // Show loading state immediately
@@ -2166,6 +2269,8 @@ function init() {
   loadLiveData().then(() => {
     // After first load, set up Supabase Realtime subscriptions
     setupRealtime();
+    // Render Aeon skills dashboard
+    renderAeonSkills();
   });
 }
 
