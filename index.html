@@ -1844,28 +1844,248 @@ document.getElementById('date').textContent = d.toLocaleDateString('en-US',{week
 // ═══ SUPABASE LIVE DATA ═══
 async function loadLiveData() {
   try {
-    const tasks = await sb.from('jake_tasks').select('*');
-    if (tasks && tasks.length > 0) {
-      const taskList = document.getElementById('taskList');
-      if (taskList) {
-        taskList.innerHTML = tasks.slice(0, 10).map(t => `
-          <div class="task-item ${t.status==='completed'?'done':''}" data-id="${t.id}">
-            <div class="task-check">${t.status==='completed'?'&#10003;':''}</div>
-            <div class="task-title">${t.title}</div>
-            <span class="telo-pill ${t.telos_trace||'p0'}">${(t.telos_trace||'p0').toUpperCase()}</span>
-            <span class="task-score ${t.fixer_score>=18?'high':'low'}">${t.fixer_score||0}/25</span>
-          </div>
-        `).join('');
-      }
-    }
-    const notes = await sb.from('jake_semantic').select('content,metadata', { actual_category: 'eq.love_note_james' });
-    const ventures = await sb.from('jake_semantic').select('content,metadata', { actual_category: 'eq.venture' });
-    const niches = await sb.from('jake_semantic').select('content,metadata', { actual_category: 'eq.niche_opportunity' });
-    console.log('Live data loaded:', { tasks: tasks?.length, notes: notes?.length, ventures: ventures?.length, niches: niches?.length });
+    // Load all agent data from Supabase
+    const agents = await sb.from('jake_agents').select('*');
+    const tasks = await sb.from('jake_agent_tasks').select('*');
+    const skills = await sb.from('jake_skills').select('*');
+    const autopilots = await sb.from('jake_autopilots').select('*');
+    const inbox = await sb.from('jake_inbox').select('*');
+
+    if (agents && agents.length > 0) renderLiveAgentBoard(agents);
+    if (tasks && tasks.length > 0) renderLiveKanban(tasks);
+    if (skills && skills.length > 0) renderLiveSkills(skills);
+    if (autopilots && autopilots.length > 0) renderLiveAutopilots(autopilots);
+    if (inbox && inbox.length > 0) renderLiveInbox(inbox);
+    renderLiveWorkspace(agents, tasks, inbox);
+
+    console.log('LIVE data loaded:', { agents: agents?.length, tasks: tasks?.length, skills: skills?.length, autopilots: autopilots?.length, inbox: inbox?.length });
   } catch (e) {
-    console.log('Using static data:', e.message);
+    console.log('Live data failed, using static:', e.message);
   }
 }
+
+// ═══ LIVE RENDER: AGENT BOARD ═══
+function renderLiveAgentBoard(agents) {
+  const el = document.getElementById('agentBoard');
+  if (!el) return;
+  const groups = {};
+  const groupColors = { strategy:'#3B82F6', product:'#8B5CF6', engineering:'#22D3EE', science:'#10B981', growth:'#F59E0B', research:'#6366F1', studio:'#EC4899' };
+  for (const a of agents) {
+    if (!groups[a.group_name]) groups[a.group_name] = { color: groupColors[a.group_name]||'#888', agents: [] };
+    groups[a.group_name].agents.push(a);
+  }
+  let html = '';
+  for (const [group, data] of Object.entries(groups)) {
+    html += `<div class="agent-group"><div class="agent-group-header"><span style="color:${data.color}">${group}</span><span class="agent-group-count">${data.agents.length}</span></div><div class="agent-grid">`;
+    for (const a of data.agents) {
+      const lastAct = a.last_activity ? timeAgo(new Date(a.last_activity)) : 'never';
+      html += `<div class="agent-card" data-agent="${a.name}" onclick="openAssignModal('${a.name}')">
+        <div class="agent-card-header"><span class="agent-name">${a.name}</span><span class="agent-status ${a.status}" title="${a.status}"></span></div>
+        <div class="agent-task">${a.status==='working'?'Active task':'Idle'}</div>
+        <div class="agent-meta"><span>&#9745; ${a.tasks_completed||0}</span><span>&#128339; ${lastAct}</span></div>
+      </div>`;
+    }
+    html += '</div></div>';
+  }
+  el.innerHTML = html;
+  // Update nav badge
+  const badge = document.querySelector('[data-section="agents"] .nav-badge');
+  if (badge) badge.textContent = agents.length;
+}
+
+// ═══ LIVE RENDER: KANBAN ═══
+function renderLiveKanban(tasks) {
+  const el = document.getElementById('kanbanBoard');
+  if (!el) return;
+  const cols = ['backlog','todo','in_progress','in_review','done','blocked'];
+  const colLabels = { backlog:'Backlog', todo:'Todo', in_progress:'In Progress', in_review:'In Review', done:'Done', blocked:'Blocked' };
+  let html = '';
+  for (const col of cols) {
+    const cards = tasks.filter(t => t.status === col);
+    html += `<div class="kanban-col"><div class="kanban-col-header"><span>${colLabels[col]||col}</span><span class="count">${cards.length}</span></div>`;
+    for (const t of cards) {
+      const dueDisplay = t.due_date ? new Date(t.due_date).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '';
+      html += `<div class="kanban-card" data-task-id="${t.id}" onclick="openTaskDetail('${t.id}')">
+        <div class="kanban-card-title">${escHtml(t.title)}</div>
+        <div class="kanban-card-meta">
+          <span class="priority-pill ${t.priority||'medium'}">${t.priority||'medium'}</span>
+          <span class="assignee-pill">${escHtml(t.assignee_name||'Unassigned')}</span>
+          ${t.telos_trace?`<span class="telos-pill ${t.telos_trace}">${t.telos_trace.toUpperCase()}</span>`:''}
+          ${t.fixer_score?`<span class="fixer-badge">${t.fixer_score}/25</span>`:''}
+        </div>
+        ${dueDisplay?`<div style="font-size:10px;color:var(--text-muted);margin-top:4px">Due: ${dueDisplay}</div>`:''}
+        <div style="margin-top:6px;display:flex;gap:4px">
+          ${col!=='done'?`<button onclick="event.stopPropagation();advanceTask('${t.id}','${col}')" style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:4px;padding:2px 8px;color:var(--text-secondary);font-size:10px;cursor:pointer">&#9654; Next</button>`:''}
+          ${col!=='backlog'?`<button onclick="event.stopPropagation();moveTaskTo('${t.id}','backlog')" style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:4px;padding:2px 8px;color:var(--text-muted);font-size:10px;cursor:pointer">&#9664; Back</button>`:''}
+        </div>
+      </div>`;
+    }
+    html += '</div>';
+  }
+  // Add new task button
+  html += `<div style="margin-top:12px"><button onclick="openNewTaskModal()" style="background:var(--accent-gradient);border:none;border-radius:8px;padding:10px 20px;color:white;font-size:13px;font-weight:500;cursor:pointer;width:100%">+ New Task</button></div>`;
+  el.innerHTML = html;
+  const badge = document.querySelector('[data-section="tasks"] .nav-badge');
+  if (badge) badge.textContent = tasks.filter(t=>t.status!=='done').length;
+}
+
+// ═══ LIVE RENDER: SKILLS ═══
+function renderLiveSkills(skills) {
+  const el = document.getElementById('skillsLibrary');
+  if (!el) return;
+  const cats = {};
+  for (const s of skills) {
+    if (!cats[s.category]) cats[s.category] = [];
+    cats[s.category].push(s);
+  }
+  let html = '';
+  for (const [cat, items] of Object.entries(cats)) {
+    html += `<div class="skills-category"><div class="skills-category-header">${cat}</div><div class="skill-grid">`;
+    for (const s of items) {
+      const rateClass = s.success_rate >= 90 ? 'high' : s.success_rate >= 75 ? 'mid' : 'low';
+      const lastUsed = s.last_used ? timeAgo(new Date(s.last_used)) : 'never';
+      html += `<div class="skill-card"><div class="skill-name">${escHtml(s.name)}</div><div class="skill-agent">${escHtml(s.agent_name)}</div><div class="skill-stats"><span>&#9654; ${s.times_used||0}x</span><span>&#128339; ${lastUsed}</span><span class="skill-rate ${rateClass}">${s.success_rate||0}%</span></div></div>`;
+    }
+    html += '</div></div>';
+  }
+  el.innerHTML = html;
+}
+
+// ═══ LIVE RENDER: AUTOPILOTS ═══
+function renderLiveAutopilots(autopilots) {
+  const el = document.getElementById('aopGrid');
+  if (!el) return;
+  let html = '';
+  for (const a of autopilots) {
+    const rate = a.run_count > 0 ? Math.round((a.success_count/a.run_count)*100) : 0;
+    const rateClass = rate >= 90 ? 'high' : rate >= 75 ? 'mid' : 'low';
+    const lastRun = a.last_run ? timeAgo(new Date(a.last_run)) : 'never';
+    const nextRun = a.next_run ? new Date(a.next_run).toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}) : 'paused';
+    html += `<div class="aop-card">
+      <div class="aop-header"><span class="aop-name">${escHtml(a.name)}</span><span class="aop-status ${a.status}">${a.status}</span></div>
+      <div class="aop-schedule">&#128336; ${escHtml(a.schedule)}</div>
+      <div class="aop-meta"><span>Last: ${lastRun}</span><span>Next: ${nextRun}</span></div>
+      <div style="margin-top:6px;display:flex;gap:8px;align-items:center"><span style="font-size:10px;color:var(--text-muted)">${a.run_count||0} runs</span><span class="aop-rate ${rateClass}">${rate}%</span></div>
+      <div style="margin-top:4px;display:flex;gap:4px">
+        ${a.status==='active'?`<button onclick="toggleAutopilot('${a.id}','paused')" style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:4px;padding:2px 8px;color:var(--text-secondary);font-size:10px;cursor:pointer">Pause</button>`:`<button onclick="toggleAutopilot('${a.id}','active')" style="background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.2);border-radius:4px;padding:2px 8px;color:var(--accent-emerald);font-size:10px;cursor:pointer">Resume</button>`}
+      </div>
+    </div>`;
+  }
+  el.innerHTML = html;
+}
+
+// ═══ LIVE RENDER: INBOX ═══
+function renderLiveInbox(inbox) {
+  const el = document.getElementById('inboxList');
+  if (!el) return;
+  let html = '';
+  for (const i of inbox) {
+    const timeAgoStr = i.created_at ? timeAgo(new Date(i.created_at)) : '';
+    html += `<div class="inbox-item ${i.read?'':'unread'}" data-inbox-id="${i.id}" onclick="markInboxRead('${i.id}',this)">
+      <span class="inbox-dot ${i.severity}"></span>
+      <div class="inbox-body">
+        <div class="inbox-from">${escHtml(i.from_agent)}</div>
+        <div class="inbox-message">${escHtml(i.title)}${i.body?' — '+escHtml(i.body):''}</div>
+        <div class="inbox-time">${timeAgoStr}</div>
+      </div>
+      <span class="inbox-type">${(i.type||'').replace(/_/g,' ')}</span>
+      <span class="inbox-severity ${i.severity}">${(i.severity||'').replace(/_/g,' ')}</span>
+    </div>`;
+  }
+  el.innerHTML = html;
+  updateInboxCount();
+}
+
+function markInboxRead(id, el) {
+  el.classList.remove('unread');
+  sb.from('jake_inbox').update(id, { read: true });
+  updateInboxCount();
+}
+
+function updateInboxCount() {
+  const count = document.querySelectorAll('.inbox-item.unread').length;
+  const wsCount = document.getElementById('wsInboxCount');
+  if (wsCount) wsCount.textContent = count;
+  const badge = document.querySelector('[data-section="inbox"] .nav-badge');
+  if (badge) badge.textContent = count;
+  const topbar = document.getElementById('topbarTasks');
+  if (topbar) topbar.textContent = count + ' unread';
+}
+
+// ═══ LIVE RENDER: WORKSPACE ═══
+function renderLiveWorkspace(agents, tasks, inbox) {
+  const wsAgents = document.getElementById('wsAgents');
+  if (!wsAgents || !agents) return;
+  let working = 0, idle = 0, blocked = 0;
+  for (const a of agents) { if (a.status==='working') working++; else if (a.status==='blocked') blocked++; else idle++; }
+  wsAgents.innerHTML = `<div class="ws-item"><span class="ws-emoji">&#9881;</span><span class="ws-label">Total agents</span><span class="ws-val">${agents.length}</span></div><div class="ws-item"><span class="ws-emoji">&#9654;</span><span class="ws-label">Working</span><span class="ws-val good">${working}</span></div><div class="ws-item"><span class="ws-emoji">&#9632;</span><span class="ws-label">Idle</span><span class="ws-val">${idle}</span></div><div class="ws-item"><span class="ws-emoji">&#9888;</span><span class="ws-label">Blocked</span><span class="ws-val warn">${blocked}</span></div>`;
+  document.getElementById('wsAgentCount').textContent = agents.length;
+  document.getElementById('topbarAgents').textContent = agents.length + ' agents';
+
+  const wsTasks = document.getElementById('wsTasks');
+  if (wsTasks && tasks) {
+    const inProgress = tasks.filter(t=>t.status==='in_progress').length;
+    const urgent = tasks.filter(t=>t.priority==='urgent'&&t.status!=='done').length;
+    wsTasks.innerHTML = `<div class="ws-item"><span class="ws-emoji">&#9654;</span><span class="ws-label">In Progress</span><span class="ws-val good">${inProgress}</span></div><div class="ws-item"><span class="ws-emoji">&#9888;</span><span class="ws-label">Urgent</span><span class="ws-val warn">${urgent}</span></div><div class="ws-item"><span class="ws-emoji">&#9744;</span><span class="ws-label">Backlog</span><span class="ws-val">${tasks.filter(t=>t.status==='backlog').length}</span></div><div class="ws-item"><span class="ws-emoji">&#10003;</span><span class="ws-label">Done</span><span class="ws-val good">${tasks.filter(t=>t.status==='done').length}</span></div>`;
+    document.getElementById('wsTaskCount').textContent = tasks.filter(t=>t.status!=='done').length;
+  }
+
+  const wsInbox = document.getElementById('wsInbox');
+  if (wsInbox && inbox) {
+    const unread = inbox.filter(i=>!i.read);
+    wsInbox.innerHTML = unread.slice(0,3).map(i=>`<div style="font-size:11px;color:var(--text-secondary);padding:4px 0;border-bottom:1px solid var(--border)">${escHtml(i.from_agent)}: ${escHtml(i.title)}</div>`).join('');
+    document.getElementById('wsInboxCount').textContent = unread.length;
+  }
+}
+
+// ═══ TASK DISPATCH ENGINE (Multica-inspired) ═══
+function advanceTask(taskId, currentStatus) {
+  const flow = { backlog:'todo', todo:'in_progress', in_progress:'in_review', in_review:'done' };
+  const next = flow[currentStatus];
+  if (!next) return;
+  sb.from('jake_agent_tasks').update(taskId, { status: next, updated_at: new Date().toISOString() }).then(r => {
+    if (r) loadLiveData();
+  });
+}
+
+function moveTaskTo(taskId, status) {
+  sb.from('jake_agent_tasks').update(taskId, { status: status, updated_at: new Date().toISOString() }).then(r => {
+    if (r) loadLiveData();
+  });
+}
+
+function toggleAutopilot(id, status) {
+  sb.from('jake_autopilots').update(id, { status: status, updated_at: new Date().toISOString() }).then(r => {
+    if (r) loadLiveData();
+  });
+}
+
+function openNewTaskModal() {
+  const title = prompt('New task title:');
+  if (!title) return;
+  const priority = prompt('Priority (urgent/high/medium/low):', 'medium') || 'medium';
+  const assignee = prompt('Assign to agent name (or "Mike"):', 'Mike');
+  const telos = prompt('TELOS trace (P0/P1/P2/P3/P4):', 'P1');
+  const fixer = parseInt(prompt('Fixer Score (0-25):', '15')) || 15;
+  sb.from('jake_agent_tasks').insert({
+    title, description: title, status: 'todo', priority,
+    assignee_name: assignee, assignee_type: assignee==='Mike'?'human':'agent',
+    creator_type: 'human', telos_trace: telos, fixer_score: fixer
+  }).then(r => { if (r) loadLiveData(); });
+}
+
+function openTaskDetail(taskId) {
+  // Could expand into a full detail modal - for now show key info
+  const card = document.querySelector(`[data-task-id="${taskId}"]`);
+  if (card) {
+    const title = card.querySelector('.kanban-card-title')?.textContent;
+    alert(`Task: ${title}\nClick the ▶ Next or ◀ Back buttons to move it through the pipeline.`);
+  }
+}
+
+// ═══ UTILITIES ═══
+function escHtml(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function timeAgo(date) { const s = Math.floor((Date.now()-date.getTime())/1000); if (s<60) return 'just now'; if (s<3600) return Math.floor(s/60)+'m ago'; if (s<86400) return Math.floor(s/3600)+'h ago'; return Math.floor(s/86400)+'d ago'; }
 
 // ═══ INIT ═══
 function init() {
