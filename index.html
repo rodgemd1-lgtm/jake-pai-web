@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jake PAI — Your Co-Founder</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg-dark: #0a0a0f;
+  --bg-card: #12121a;
+  --bg-hover: #1a1a2e;
+  --accent: #00d4ff;
+  --accent2: #7b61ff;
+  --text: #e8e8e8;
+  --text-dim: #888;
+  --success: #00ff88;
+  --warning: #ffaa00;
+  --danger: #ff4466;
+  --border: #2a2a3a;
+}
+body { background: var(--bg-dark); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; height: 100vh; overflow: hidden; }
+.app { display: grid; grid-template-columns: 260px 1fr; height: 100vh; }
+
+/* Sidebar */
+.sidebar { background: var(--bg-card); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+.sidebar-header { padding: 20px; border-bottom: 1px solid var(--border); }
+.sidebar-header h1 { font-size: 18px; color: var(--accent); }
+.sidebar-header .greeting { font-size: 13px; color: var(--text-dim); margin-top: 4px; }
+.nav { flex: 1; overflow-y: auto; padding: 12px 0; }
+.nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 20px; cursor: pointer; transition: all 0.2s; color: var(--text-dim); font-size: 14px; }
+.nav-item:hover { background: var(--bg-hover); color: var(--text); }
+.nav-item.active { background: var(--bg-hover); color: var(--accent); border-right: 2px solid var(--accent); }
+.nav-item .icon { width: 20px; text-align: center; }
+.nav-item .badge { background: var(--danger); color: white; font-size: 10px; padding: 1px 6px; border-radius: 10px; margin-left: auto; }
+
+/* Main */
+.main { display: flex; flex-direction: column; overflow: hidden; }
+.topbar { padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.topbar .date { font-size: 13px; color: var(--text-dim); }
+.topbar .jake-status { display: flex; align-items: center; gap: 8px; }
+.topbar .jake-status .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
+.topbar .jake-status span { font-size: 13px; color: var(--success); }
+.content { flex: 1; overflow-y: auto; padding: 24px; }
+
+/* Cards */
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+.card h3 { font-size: 15px; color: var(--accent); margin-bottom: 8px; }
+.card p { font-size: 13px; color: var(--text-dim); line-height: 1.5; }
+.card .metric { font-size: 32px; color: var(--text); font-weight: 700; }
+.card .label { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+.card .change { font-size: 12px; margin-top: 4px; }
+.card .change.up { color: var(--success); }
+.card .change.down { color: var(--danger); }
+
+/* Tasks */
+.task-list { display: flex; flex-direction: column; gap: 8px; }
+.task { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+.task:hover { border-color: var(--accent); }
+.task .checkbox { width: 18px; height: 18px; border: 2px solid var(--text-dim); border-radius: 4px; }
+.task.done .checkbox { background: var(--success); border-color: var(--success); }
+.task .title { flex: 1; font-size: 14px; }
+.task.done .title { text-decoration: line-through; color: var(--text-dim); }
+.task .score { font-size: 12px; padding: 2px 8px; border-radius: 10px; }
+.task .score.high { background: rgba(0,255,136,0.15); color: var(--success); }
+.task .score.low { background: rgba(255,68,102,0.15); color: var(--danger); }
+.task .telos { font-size: 11px; color: var(--text-dim); }
+
+/* Chat */
+.chat-area { display: flex; flex-direction: column; height: 100%; }
+.messages { flex: 1; overflow-y: auto; padding: 16px 0; }
+.message { display: flex; gap: 10px; margin-bottom: 16px; }
+.message.jake .avatar { background: var(--accent2); }
+.message.user .avatar { background: var(--text-dim); }
+.avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; font-weight: 700; flex-shrink: 0; }
+.message .bubble { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px; max-width: 70%; font-size: 14px; line-height: 1.5; }
+.message.jake .bubble { border-color: var(--accent2); }
+.chat-input { display: flex; gap: 8px; padding: 16px 0; }
+.chat-input input { flex: 1; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; color: var(--text); font-size: 14px; outline: none; }
+.chat-input input:focus { border-color: var(--accent); }
+.chat-input button { background: var(--accent); color: var(--bg-dark); border: none; border-radius: 8px; padding: 12px 20px; font-weight: 700; cursor: pointer; }
+
+/* Sections */
+.section { display: none; }
+.section.active { display: block; }
+.section-header { margin-bottom: 20px; }
+.section-header h2 { font-size: 24px; font-weight: 700; }
+.section-header p { font-size: 14px; color: var(--text-dim); margin-top: 4px; }
+
+/* Pipeline */
+.pipeline { display: flex; gap: 0; overflow-x: auto; }
+.pipeline-stage { flex: 1; min-width: 150px; }
+.pipeline-stage .stage-header { padding: 8px 12px; font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-dim); border-bottom: 2px solid var(--border); }
+.pipeline-stage .stage-count { font-size: 20px; color: var(--text); }
+.pipeline-card { margin: 8px; padding: 12px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; font-size: 13px; }
+.pipeline-card .company { color: var(--text); font-weight: 600; }
+.pipeline-card .role { color: var(--accent); font-size: 12px; }
+.pipeline-card .fit { display: inline-block; margin-top: 4px; padding: 2px 8px; border-radius: 10px; font-size: 11px; }
+
+/* Love note */
+.love-note { background: linear-gradient(135deg, #1a0a2e, #2a1a4a); border: 1px solid #4a2a6a; border-radius: 12px; padding: 24px; }
+.love-note h3 { color: #ff69b4; }
+.love-note .note-content { font-size: 16px; line-height: 1.7; color: #ddd; margin-top: 12px; font-style: italic; }
+
+@media (max-width: 768px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <h1>Jake PAI</h1>
+      <div class="greeting">Yo, Mike. What is cook.</div>
+    </div>
+    <div class="nav">
+      <div class="nav-item active" data-section="focus"><span class="icon">&#9673;</span> Focus Today <span class="badge">3</span></div>
+      <div class="nav-item" data-section="chat"><span class="icon">&#9993;</span> Chat with Jake</div>
+      <div class="nav-item" data-section="jobs"><span class="icon">&#9733;</span> Jobs (Signal) <span class="badge">12</span></div>
+      <div class="nav-item" data-section="ventures"><span class="icon">&#9670;</span> Ventures</div>
+      <div class="nav-item" data-section="health"><span class="icon">&#9829;</span> Health & Wellness</div>
+      <div class="nav-item" data-section="family"><span class="icon">&#9827;</span> Family & Relationships</div>
+      <div class="nav-item" data-section="finances"><span class="icon">&#36;</span> Finances</div>
+      <div class="nav-item" data-section="music"><span class="icon">&#9835;</span> Music & Suno</div>
+      <div class="nav-item" data-section="intel"><span class="icon">&#9881;</span> Intel Feed</div>
+      <div class="nav-item" data-section="calendar"><span class="icon">&#128197;</span> Calendar</div>
+      <div class="nav-item" data-section="niche"><span class="icon">&#128200;</span> Niche Radar</div>
+    </div>
+  </nav>
+  <div class="main">
+    <div class="topbar">
+      <div class="date" id="currentDate"></div>
+      <div class="jake-status"><div class="dot"></div><span>Jake is online</span></div>
+    </div>
+    <div class="content">
+
+      <!-- FOCUS TODAY -->
+      <div class="section active" id="focus">
+        <div class="section-header">
+          <h2>What is cook today.</h2>
+          <p>Jake's TELOS-aligned focus for today. No shiny objects. Ship first.</p>
+        </div>
+        <div class="grid">
+          <div class="card"><h3>Ship Today</h3><div class="metric" id="shipToday">TransformFit MVP</div><div class="label">P0 — Financial Stability</div></div>
+          <div class="card"><h3>Applications Due</h3><div class="metric">5</div><div class="label">CAIO / VP AI Strategy / Remote</div></div>
+          <div class="card"><h3>Follow-Ups Stale</h3><div class="metric">3</div><div class="label">Send today or lose them</div></div>
+        </div>
+        <h3 style="margin:24px 0 12px;color:var(--accent)">Tasks</h3>
+        <div class="task-list" id="taskList">
+          <div class="task"><div class="checkbox"></div><div class="title">Ship TransformFit MVP — core coaching + Stripe</div><div class="score high">22/25</div><div class="telos">P0</div></div>
+          <div class="task"><div class="checkbox"></div><div class="title">Apply to 5 CAIO roles ( remote, $260K+ )</div><div class="score high">20/25</div><div class="telos">P0</div></div>
+          <div class="task"><div class="checkbox"></div><div class="title">Send 3 stale follow-ups</div><div class="score high">18/25</div><div class="telos">P1</div></div>
+          <div class="task"><div class="checkbox"></div><div class="title">Workout — 45 min weights + Birch walk</div><div class="score high">19/25</div><div class="telos">P3</div></div>
+          <div class="task"><div class="checkbox"></div><div class="title">Daily love note to James</div><div class="score high">25/25</div><div class="telos">P2</div></div>
+        </div>
+      </div>
+
+      <!-- CHAT -->
+      <div class="section" id="chat">
+        <div class="chat-area">
+          <div class="messages" id="chatMessages">
+            <div class="message jake"><div class="avatar">J</div><div class="bubble">Yo, Mike. What is cook. I pulled your pipeline — 3 follow-ups going stale and 5 apps due today. The Fixer says TransformFit ships this week or we are having a conversation. What is the one thing you are knocking out first?</div></div>
+          </div>
+          <div class="chat-input"><input type="text" id="chatInput" placeholder="Talk to Jake..." /><button onclick="sendMessage()">Send</button></div>
+        </div>
+      </div>
+
+      <!-- JOBS -->
+      <div class="section" id="jobs">
+        <div class="section-header"><h2>Signal — Job Search Intelligence</h2><p>Proactive, not reactive. Every job scored against your profile.</p></div>
+        <div class="pipeline">
+          <div class="pipeline-stage"><div class="stage-header">New <span class="stage-count">8</span></div><div class="pipeline-card"><div class="company">TechCorp</div><div class="role">Chief AI Officer</div><div class="fit" style="background:rgba(0,255,136,0.15);color:#00ff88">92% fit</div></div><div class="pipeline-card"><div class="company">HealthAI Inc</div><div class="role">VP AI Strategy</div><div class="fit" style="background:rgba(0,255,136,0.15);color:#00ff88">88% fit</div></div></div>
+          <div class="pipeline-stage"><div class="stage-header">Interested <span class="stage-count">3</span></div></div>
+          <div class="pipeline-stage"><div class="stage-header">Applied <span class="stage-count">1</span></div></div>
+          <div class="pipeline-stage"><div class="stage-header">Interviewing</div></div>
+          <div class="pipeline-stage"><div class="stage-header">Offer</div></div>
+        </div>
+      </div>
+
+      <!-- HEALTH -->
+      <div class="section" id="health">
+        <div class="section-header"><h2>Health & Wellness</h2><p>Bro, you haven't worked out in 3 days. That is not giving fitness-app-founder energy. Touch grass.</p></div>
+        <div class="grid">
+          <div class="card"><h3>Workouts This Week</h3><div class="metric">2/5</div><div class="label">Target: 5 sessions</div></div>
+          <div class="card"><h3>Mood Today</h3><div class="metric">7/10</div><div class="label">Moderate — go lift something</div></div>
+          <div class="card"><h3>Birch Walk</h3><div class="metric">20 min</div><div class="label">French Bulldog needs his walk</div></div>
+        </div>
+      </div>
+
+      <!-- FAMILY -->
+      <div class="section" id="family">
+        <div class="section-header"><h2>Family & Relationships</h2><p>James, Jacob, Alex, Birch. The real P0.</p></div>
+        <div class="love-note">
+          <h3>Today's Love Note for James</h3>
+          <div class="note-content">"Hey babe. I know the chaos is real right now, but I want you to know — you are the reason any of this is worth doing. The business can wait. You can't. I love you more than the MRR graph."</div>
+        </div>
+        <div class="grid" style="margin-top:16px">
+          <div class="card"><h3>Jacob (15) — Football/Track</h3><p>#79 OL/DL, Class of 2029, Pewaukee Pirates. jakerodgers2029.com is live. Recruiting season is NOW.</p></div>
+          <div class="card"><h3>Alex (12) — Soccer</h3><p>Next game: Saturday. Ask him about it.</p></div>
+          <div class="card"><h3>Birch — French Bulldog</h3><p>20 min walk today. He's giving you puppy eyes. Don't skip it.</p></div>
+        </div>
+      </div>
+
+      <!-- VENTURES -->
+      <div class="section" id="ventures">
+        <div class="section-header"><h2>Ventures</h2><p>Only Hawkeye has revenue. The rest need to ship. No cap.</p></div>
+        <div class="grid">
+          <div class="card"><h3>Hawkeye Auto Body AI</h3><div class="metric">LIVE</div><div class="label">Only revenue product</div></div>
+          <div class="card"><h3>TransformFit</h3><div class="metric">BUILDING</div><div class="label">MVP this week. No more excuses.</div></div>
+          <div class="card"><h3>RIG Consulting</h3><div class="metric">ACTIVE</div><div class="label">Inbound leads?</div></div>
+          <div class="card"><h3>Beautiful Ruin</h3><div class="metric">IN PRODUCTION</div><div class="label">Album. Suno sessions queued.</div></div>
+        </div>
+      </div>
+
+      <!-- FINANCES -->
+      <div class="section" id="finances">
+        <div class="section-header"><h2>Finances</h2><p>Vault is watching every dollar like it is the last one.</p></div>
+        <div class="grid">
+          <div class="card"><h3>MRR</h3><div class="metric">$0</div><div class="label">Hawkeye revenue TBD</div></div>
+          <div class="card"><h3>Burn Rate</h3><div class="metric">--</div><div class="label">Connect bank for auto-tracking</div></div>
+          <div class="card"><h3>Tax Prep</h3><div class="metric">Q2</div><div class="label">Next estimated payment: June 15</div></div>
+        </div>
+      </div>
+
+      <!-- MUSIC -->
+      <div class="section" id="music">
+        <div class="section-header"><h2>Music & Suno</h2><p>Beautiful Ruin album. Let's produce.</p></div>
+        <div class="grid">
+          <div class="card"><h3>Song Queue</h3><p>3 songs ready for Suno generation. Queue them up.</p></div>
+          <div class="card"><h3>Spotify Mood</h3><p>Based on your mood (7/10), here's a playlist: Focus Flow</p></div>
+        </div>
+      </div>
+
+      <!-- INTEL -->
+      <div class="section" id="intel">
+        <div class="section-header"><h2>Intel Feed</h2><p>Daily intelligence. Stay smarter.</p></div>
+        <div class="card"><h3>Today's Digest</h3><p>AI job market: 47 new CAIO-level roles posted this week. Enterprise AI adoption accelerating. TransformFit competitor X raised Series A. Read more...</p></div>
+      </div>
+
+      <!-- CALENDAR -->
+      <div class="section" id="calendar">
+        <div class="section-header"><h2>Calendar</h2><p>6 AM deep work. 10 AM meetings max. 6 PM family. Non-negotiable.</p></div>
+      </div>
+
+      <!-- NICHE RADAR -->
+      <div class="section" id="niche">
+        <div class="section-header"><h2>Niche Radar</h2><p>Daily $10K opportunities. Build in a day, make money.</p></div>
+        <div class="card"><h3>Today's Opportunities</h3><p>Scanning... Jake is looking for micro-SaaS, AI wrappers, and niche automations that can generate $10K+ with < 1 day of work.</p></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script>
+  // Date
+  document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-US', {weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  // Navigation
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      item.classList.add('active');
+      document.getElementById(item.dataset.section).classList.add('active');
+    });
+  });
+  // Chat
+  function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const msg = input.value.trim();
+    if (!msg) return;
+    const messages = document.getElementById('chatMessages');
+    messages.innerHTML += '<div class="message user"><div class="avatar">M</div><div class="bubble">' + msg + '</div></div>';
+    input.value = '';
+    setTimeout(() => {
+      messages.innerHTML += '<div class="message jake"><div class="avatar">J</div><div class="bubble">Bet. Let me think on that. (Jake PAI v4.0 — backend connecting...)</div></div>';
+      messages.scrollTop = messages.scrollHeight;
+    }, 1000);
+    messages.scrollTop = messages.scrollHeight;
+  }
+  document.getElementById('chatInput').addEventListener('keypress', e => { if (e.key === 'Enter') sendMessage(); });
+  // Task toggle
+  document.querySelectorAll('.task').forEach(t => {
+    t.addEventListener('click', () => {
+      t.classList.toggle('done');
+    });
+  });
+</script>
+</body>
+</html>
