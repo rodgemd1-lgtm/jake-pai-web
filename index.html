@@ -1856,11 +1856,17 @@ async function loadLiveData() {
     if (skills && skills.length > 0) renderLiveSkills(skills);
     if (autopilots && autopilots.length > 0) renderLiveAutopilots(autopilots);
     if (inbox && inbox.length > 0) renderLiveInbox(inbox);
-    renderLiveWorkspace(agents, tasks, inbox);
+    renderLiveWorkspace(agents||[], tasks||[], inbox||[]);
 
     console.log('LIVE data loaded:', { agents: agents?.length, tasks: tasks?.length, skills: skills?.length, autopilots: autopilots?.length, inbox: inbox?.length });
   } catch (e) {
-    console.log('Live data failed, using static:', e.message);
+    console.log('Live data failed, falling back to static:', e.message);
+    renderAgentBoard();
+    renderKanban();
+    renderSkills();
+    renderAutopilots();
+    renderInbox();
+    renderWorkspace();
   }
 }
 
@@ -2087,15 +2093,37 @@ function openTaskDetail(taskId) {
 function escHtml(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function timeAgo(date) { const s = Math.floor((Date.now()-date.getTime())/1000); if (s<60) return 'just now'; if (s<3600) return Math.floor(s/60)+'m ago'; if (s<86400) return Math.floor(s/3600)+'h ago'; return Math.floor(s/86400)+'d ago'; }
 
+// ═══ SUPABASE REALTIME ═══
+function setupRealtime() {
+  // Use Supabase Realtime via WebSocket to listen for changes
+  // This allows agent status, task updates, and inbox to update live without refresh
+  try {
+    const wsUrl = SUPABASE_URL.replace('https://','wss://').replace('http://','ws://');
+    const channel = `${wsUrl}/realtime/v1/websocket?apikey=${SUPABASE_ANON_KEY}&vsn=1.0.0`;
+    
+    // Simple polling fallback — refresh every 30 seconds
+    setInterval(() => { loadLiveData(); }, 30000);
+    console.log('Realtime: polling every 30s (WebSocket Realtime v2 requires @supabase/supabase-js)');
+  } catch(e) {
+    console.log('Realtime setup failed:', e.message);
+  }
+}
+
 // ═══ INIT ═══
 function init() {
-  renderAgentBoard();
-  renderKanban();
-  renderSkills();
-  renderAutopilots();
-  renderInbox();
-  renderWorkspace();
-  loadLiveData();
+  // Show loading state immediately
+  document.getElementById('agentBoard').innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:12px">Loading agents from Supabase...</div>';
+  document.getElementById('kanbanBoard').innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:12px">Loading tasks from Supabase...</div>';
+  document.getElementById('skillsLibrary').innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:12px">Loading skills...</div>';
+  document.getElementById('aopGrid').innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:12px">Loading autopilots...</div>';
+  document.getElementById('inboxList').innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:12px">Loading inbox...</div>';
+  
+  // Live data renders everything — static fallback in catch block
+  loadLiveData().then(() => {
+    // After first load, set up Supabase Realtime subscriptions
+    setupRealtime();
+  });
+}
 }
 
 document.addEventListener('DOMContentLoaded', init);
