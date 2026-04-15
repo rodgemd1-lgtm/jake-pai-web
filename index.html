@@ -639,6 +639,24 @@ body::before { content:''; position:fixed; inset:0; z-index:9999; pointer-events
       <div id="capDashboard" style="min-height:60px"></div>
     </div>
 
+    <!-- ═══ COGNITIVE ARCHITECTURE ═══ -->
+    <div class="section" id="cognitive">
+      <div class="section-header">
+        <h2>Jake's <span class="gradient">Brain</span></h2>
+        <p>Big Five personality. Emotional state machine. Belief engine. Prediction calibration. Theory of mind. Self-reflection.</p>
+      </div>
+      <div id="cogDashboard" style="min-height:60px"></div>
+    </div>
+
+    <!-- ═══ PREDICTIONS ═══ -->
+    <div class="section" id="predictions">
+      <div class="section-header">
+        <h2>Prediction <span class="gradient">Engine</span></h2>
+        <p>Calibrated forecasts. Superforecaster methodology. Brier score tracking. 15 prediction repos integrated.</p>
+      </div>
+      <div id="predDashboard" style="min-height:60px"></div>
+    </div>
+
     <!-- ═══ FOCUS ═══ -->
     <div class="section" id="focus">
       <div class="section-header">
@@ -2385,6 +2403,91 @@ async function renderCapabilityDashboard() {
   }
 }
 
+// ═══ COGNITIVE ARCHITECTURE DASHBOARD ═══
+async function renderCognitiveDashboard() {
+  const container = document.getElementById('cogDashboard');
+  if (!container) return;
+  container.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-muted)">Loading Jake\'s brain...</div>';
+  try {
+    const [personality, emotions, beliefs, social] = await Promise.all([
+      fetch(`${SUPABASE_URL}/rest/v1/jake_personality?select=*&order=trait`, {headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+SUPABASE_ANON_KEY}}).then(r=>r.json()),
+      fetch(`${SUPABASE_URL}/rest/v1/jake_emotional_state?select=*&order=created_at.desc&limit=5`, {headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+SUPABASE_ANON_KEY}}).then(r=>r.json()),
+      fetch(`${SUPABASE_URL}/rest/v1/jake_beliefs?select=*&order=confidence.desc&limit=8`, {headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+SUPABASE_ANON_KEY}}).then(r=>r.json()),
+      fetch(`${SUPABASE_URL}/rest/v1/jake_social_model?select=*`, {headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+SUPABASE_ANON_KEY}}).then(r=>r.json())
+    ]);
+    let html = '';
+    // Personality bars
+    html += '<div style="font-weight:600;color:var(--accent-purple);font-size:11px;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Personality (Big Five + Jake Traits)</div>';
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;margin-bottom:16px">';
+    for (const t of personality) {
+      const pct = Math.round(t.value * 100);
+      const color = t.value >= 0.8 ? 'var(--accent-green)' : t.value >= 0.5 ? 'var(--accent-blue)' : 'var(--accent-red)';
+      html += '<div style="display:flex;align-items:center;gap:8px"><span style="font-size:11px;color:var(--text-secondary);min-width:100px">'+t.trait.replace(/_/g,' ')+'</span><div style="flex:1;height:6px;background:var(--bg-muted);border-radius:3px;overflow:hidden"><div style="width:'+pct+'%;height:100%;background:'+color+';border-radius:3px"></div></div><span style="font-size:10px;color:var(--text-muted)">'+pct+'</span></div>';
+    }
+    html += '</div>';
+    // Current emotion
+    if (emotions.length > 0) {
+      const e = emotions[0];
+      const modeColors = {strategist:'#3b82f6',challenger:'#f59e0b',guardian:'#10b981',nurse:'#ef4444'};
+      const mc = modeColors[e.personality_mode] || '#6b7280';
+      html += '<div style="font-weight:600;color:var(--accent-purple);font-size:11px;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Current State</div>';
+      html += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">';
+      html += '<div style="background:var(--bg-muted);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:12px"><span style="color:var(--text-muted)">Emotion</span> <span style="color:var(--text-primary);font-weight:500">'+e.emotion+'</span></div>';
+      html += '<div style="background:'+mc+'22;border:1px solid '+mc+'44;border-radius:6px;padding:8px 12px;font-size:12px"><span style="color:var(--text-muted)">Mode</span> <span style="color:'+mc+';font-weight:600">'+e.personality_mode.toUpperCase()+'</span></div>';
+      html += '<div style="background:var(--bg-muted);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:12px"><span style="color:var(--text-muted)">Intensity</span> <span style="color:var(--text-primary);font-weight:500">'+Math.round(e.intensity*100)+'%</span></div>';
+      html += '<div style="background:var(--bg-muted);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:12px"><span style="color:var(--text-muted)">Valence</span> <span style="color:'+(e.valence>0?'var(--accent-green)':'var(--accent-red)')+';font-weight:500">'+(e.valence>0?'+':'')+Math.round(e.valence*100)+'</span></div>';
+      html += '</div>';
+    }
+    // Beliefs
+    html += '<div style="font-weight:600;color:var(--accent-purple);font-size:11px;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Core Beliefs</div>';
+    for (const b of beliefs) {
+      html += '<div style="background:var(--bg-muted);border:1px solid var(--border);border-radius:6px;padding:8px 12px;margin-bottom:4px;font-size:12px"><span style="color:var(--accent-blue);font-weight:600">'+Math.round(b.confidence*100)+'%</span> <span style="color:var(--text-secondary)">'+b.belief+'</span></div>';
+    }
+    // Social model
+    if (social.length > 0) {
+      html += '<div style="font-weight:600;color:var(--accent-purple);font-size:11px;text-transform:uppercase;letter-spacing:1px;margin-top:12px;margin-bottom:8px">Social Model (Theory of Mind)</div>';
+      html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px">';
+      for (const p of social) {
+        html += '<div style="background:var(--bg-muted);border:1px solid var(--border);border-radius:6px;padding:8px 12px"><div style="font-size:12px;font-weight:500;color:var(--text-primary)">'+p.person_name+'</div><div style="font-size:10px;color:var(--text-muted)">'+p.relationship+'</div><div style="display:flex;gap:4px;margin-top:4px"><span style="font-size:9px;background:rgba(139,92,246,0.1);color:var(--accent-purple);padding:1px 4px;border-radius:3px">trust '+Math.round(p.trust_level*100)+'%</span><span style="font-size:9px;background:rgba(236,72,153,0.1);color:#ec4899;padding:1px 4px;border-radius:3px">bond '+Math.round(p.emotional_bond*100)+'%</span></div></div>';
+      }
+      html += '</div>';
+    }
+    container.innerHTML = html;
+  } catch(err) {
+    container.innerHTML = '<div style="padding:16px;color:var(--accent-red)">Error: '+err.message+'</div>';
+  }
+}
+
+// ═══ PREDICTION ENGINE DASHBOARD ═══
+async function renderPredictionDashboard() {
+  const container = document.getElementById('predDashboard');
+  if (!container) return;
+  container.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-muted)">Loading predictions...</div>';
+  try {
+    const preds = await fetch(`${SUPABASE_URL}/rest/v1/jake_predictions?select=*&order=created_at.desc&limit=10`, {headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+SUPABASE_ANON_KEY}}).then(r=>r.json());
+    let html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px">';
+    for (const p of preds) {
+      const prob = Math.round(p.probability * 100);
+      const conf = Math.round(p.confidence * 100);
+      const probColor = prob >= 70 ? 'var(--accent-green)' : prob >= 40 ? 'var(--accent-blue)' : 'var(--accent-red)';
+      const resolved = p.outcome ? '<span style="font-size:9px;color:var(--accent-green);margin-left:6px">RESOLVED</span>' : '';
+      html += '<div style="background:var(--bg-muted);border:1px solid var(--border);border-radius:8px;padding:12px">';
+      html += '<div style="font-size:12px;color:var(--text-primary);margin-bottom:6px">'+p.prediction.replace(/</g,'&lt;')+resolved+'</div>';
+      html += '<div style="display:flex;gap:12px;align-items:center;margin-bottom:6px">';
+      html += '<div style="flex:1"><div style="font-size:9px;color:var(--text-muted);margin-bottom:2px">Probability</div><div style="height:4px;background:var(--bg-muted);border-radius:2px;overflow:hidden"><div style="width:'+prob+'%;height:100%;background:'+probColor+';border-radius:2px"></div></div><span style="font-size:10px;color:'+probColor+'">'+prob+'%</span></div>';
+      html += '<div><div style="font-size:9px;color:var(--text-muted)">Confidence</div><span style="font-size:12px;color:var(--text-primary);font-weight:600">'+conf+'%</span></div>';
+      html += '</div>';
+      if (p.reasoning) html += '<div style="font-size:10px;color:var(--text-secondary);line-height:1.4">'+p.reasoning.substring(0,120).replace(/</g,'&lt;')+'...</div>';
+      html += '<div style="font-size:9px;color:var(--text-muted);margin-top:4px">'+p.category+' | '+p.methodology+(p.deadline ? ' | due '+p.deadline.substring(0,10) : '')+'</div>';
+      html += '</div>';
+    }
+    html += '</div>';
+    container.innerHTML = html;
+  } catch(err) {
+    container.innerHTML = '<div style="padding:16px;color:var(--accent-red)">Error: '+err.message+'</div>';
+  }
+}
+
 // ═══ INIT ═══
 function init() {
   // Show loading state immediately
@@ -2402,6 +2505,10 @@ function init() {
     renderAeonSkills();
     // Render capability dashboard from Supabase
     renderCapabilityDashboard();
+    // Render cognitive architecture
+    renderCognitiveDashboard();
+    // Render prediction engine
+    renderPredictionDashboard();
   });
 }
 
