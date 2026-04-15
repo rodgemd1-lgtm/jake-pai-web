@@ -1168,6 +1168,14 @@ const sb = {
         return r.json();
       }
     };
+  },
+  async rpc(fn, params={}) {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+      method:'POST',
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type':'application/json' },
+      body: JSON.stringify(params)
+    });
+    return r.json();
   }
 };
 
@@ -1683,9 +1691,15 @@ function logMood(btn) {
   const resp = document.getElementById('moodResponse');
   resp.textContent = moodResponses[mood] || "Got it. That's real. I'm here.";
   resp.style.display = 'block';
-  // Save to localStorage
+  // Persist to Supabase (upsert today's health record)
   const today = new Date().toISOString().split('T')[0];
   localStorage.setItem('mood_'+today, mood);
+  sb.from('jake_health').insert({ date: today, mood: mood }).then(r => {
+    if (!r || r.code) {
+      // If insert fails (duplicate), try update
+      sb.from('jake_health').update(null, { mood: mood });
+    }
+  });
 }
 
 function updateStress(val) {
@@ -1698,6 +1712,9 @@ function updateStress(val) {
   else resp.textContent = "Mike. Stop. Close the laptop. Go be with james. This can wait. You cannot pour from an empty cup. I care about you too much to let you burn out.";
   const today = new Date().toISOString().split('T')[0];
   localStorage.setItem('stress_'+today, val);
+  sb.from('jake_health').insert({ date: today, stress: parseInt(val) }).then(r => {
+    if (!r || r.code) sb.from('jake_health').update(null, { stress: parseInt(val) });
+  });
 }
 
 function logGratitude() {
@@ -1707,7 +1724,11 @@ function logGratitude() {
   const log = document.getElementById('gratitudeLog');
   const today = new Date().toLocaleDateString('en-US', {month:'short',day:'numeric'});
   log.innerHTML = '<div style="padding:8px;background:rgba(139,92,246,0.05);border-radius:6px;border:1px solid rgba(139,92,246,0.1);margin-top:4px"><span style="color:var(--accent-purple);font-weight:500">'+today+':</span> '+val.replace(/</g,'&lt;')+'</div>' + log.innerHTML;
-  localStorage.setItem('gratitude_'+new Date().toISOString().split('T')[0], val);
+  const dateStr = new Date().toISOString().split('T')[0];
+  localStorage.setItem('gratitude_'+dateStr, val);
+  sb.from('jake_health').insert({ date: dateStr, gratitude: val }).then(r => {
+    if (!r || r.code) sb.from('jake_health').update(null, { gratitude: val });
+  });
   input.value = '';
 }
 
@@ -1720,12 +1741,19 @@ function showLiftInput() {
   if (parts[1]) document.getElementById('liftSquat').textContent = parts[1] + ' lbs';
   if (parts[2]) document.getElementById('liftDead').textContent = parts[2] + ' lbs';
   if (parts[3]) document.getElementById('liftOHP').textContent = parts[3] + ' lbs';
-  localStorage.setItem('lifts_'+new Date().toISOString().split('T')[0], lifts);
+  const dateStr = new Date().toISOString().split('T')[0];
+  localStorage.setItem('lifts_'+dateStr, lifts);
+  // Persist each lift to Supabase
+  if (parts[0]) sb.from('jake_workouts').insert({ date: dateStr, exercise_type:'bench', weight:parseFloat(parts[0]) });
+  if (parts[1]) sb.from('jake_workouts').insert({ date: dateStr, exercise_type:'squat', weight:parseFloat(parts[1]) });
+  if (parts[2]) sb.from('jake_workouts').insert({ date: dateStr, exercise_type:'deadlift', weight:parseFloat(parts[2]) });
+  if (parts[3]) sb.from('jake_workouts').insert({ date: dateStr, exercise_type:'ohp', weight:parseFloat(parts[3]) });
 }
 
 function logBirchWalk() {
   const today = new Date().toISOString().split('T')[0];
   localStorage.setItem('birch_'+today, 'true');
+  sb.from('jake_workouts').insert({ date: today, exercise_type:'birch_walk', birch_walk:true, birch_minutes:20 });
   alert('Birch walk logged! He thanks you with snorts and zoomies.');
 }
 
@@ -1815,12 +1843,29 @@ function sendMessage() {
   const typingId = 'typing-'+Date.now();
   messages.innerHTML += '<div class="chat-msg jake" id="'+typingId+'"><div class="chat-avatar jake">J</div><div class="typing"><span></span><span></span><span></span></div></div>';
   messages.scrollTop = messages.scrollHeight;
-  setTimeout(() => {
-    const resp = jakeResponses[Math.floor(Math.random()*jakeResponses.length)];
+
+  // Call Supabase RPC for real AI-powered Jake response
+  sb.rpc('jake_chat', { user_message: msg }).then(result => {
+    if (result && result.length > 0) {
+      const resp = result[0];
+      const el = document.getElementById(typingId);
+      if (el) el.outerHTML = '<div class="chat-msg jake"><div class="chat-avatar jake">J</div><div class="chat-bubble"><span class="personality-tag '+resp.personality_tag+'">&#128156; '+resp.personality_tag.toUpperCase()+'</span><br>'+resp.assistant_message.replace(/</g,'&lt;')+'</div></div>';
+      messages.scrollTop = messages.scrollHeight;
+    } else {
+      // Fallback to static responses if RPC fails
+      const fb = jakeResponses[Math.floor(Math.random()*jakeResponses.length)];
+      const el = document.getElementById(typingId);
+      if (el) el.outerHTML = '<div class="chat-msg jake"><div class="chat-avatar jake">J</div><div class="chat-bubble"><span class="personality-tag '+fb.tag+'">'+fb.emoji+' '+fb.tag.toUpperCase()+'</span><br>'+fb.text+'</div></div>';
+      messages.scrollTop = messages.scrollHeight;
+    }
+  }).catch(err => {
+    // Fallback to static responses on error
+    console.log('Chat RPC failed, using fallback:', err);
+    const fb = jakeResponses[Math.floor(Math.random()*jakeResponses.length)];
     const el = document.getElementById(typingId);
-    if (el) el.outerHTML = '<div class="chat-msg jake"><div class="chat-avatar jake">J</div><div class="chat-bubble"><span class="personality-tag '+resp.tag+'">'+resp.emoji+' '+resp.tag.toUpperCase()+'</span><br>'+resp.text+'</div></div>';
+    if (el) el.outerHTML = '<div class="chat-msg jake"><div class="chat-avatar jake">J</div><div class="chat-bubble"><span class="personality-tag '+fb.tag+'">'+fb.emoji+' '+fb.tag.toUpperCase()+'</span><br>'+fb.text+'</div></div>';
     messages.scrollTop = messages.scrollHeight;
-  }, 1200);
+  });
 }
 document.getElementById('chatInput').addEventListener('keypress', e => { if(e.key==='Enter') sendMessage(); });
 
