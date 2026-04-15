@@ -4,289 +4,753 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jake PAI — Your Co-Founder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
+/* ═══════════════════════════════════════════════════════════
+   JAKE PAI V20 — MIDNIGHT NEBULA DESIGN SYSTEM
+   ═══════════════════════════════════════════════════════════ */
 :root {
-  --bg-dark: #0a0a0f;
-  --bg-card: #12121a;
-  --bg-hover: #1a1a2e;
-  --accent: #00d4ff;
-  --accent2: #7b61ff;
-  --text: #e8e8e8;
-  --text-dim: #888;
-  --success: #00ff88;
-  --warning: #ffaa00;
-  --danger: #ff4466;
-  --border: #2a2a3a;
+  --bg-primary: #09090B;
+  --bg-secondary: #0F0F14;
+  --bg-tertiary: #18181B;
+  --bg-elevated: #27272A;
+  --glass: rgba(255,255,255,0.03);
+  --glass-hover: rgba(255,255,255,0.06);
+  --glass-border: rgba(255,255,255,0.06);
+  --glass-border-hover: rgba(255,255,255,0.10);
+  --text-primary: #FAFAFA;
+  --text-secondary: #A1A1AA;
+  --text-tertiary: #71717A;
+  --accent-blue: #3B82F6;
+  --accent-purple: #8B5CF6;
+  --accent-pink: #EC4899;
+  --accent-cyan: #22D3EE;
+  --accent-emerald: #34D399;
+  --accent-gradient: linear-gradient(135deg, #3B82F6, #8B5CF6, #EC4899);
+  --glow-blue: 0 0 20px rgba(59,130,246,0.3);
+  --glow-purple: 0 0 20px rgba(139,92,246,0.3);
+  --success: #22C55E;
+  --warning: #EAB308;
+  --error: #EF4444;
+  --sidebar-w: 260px;
+  --topbar-h: 56px;
+  --radius: 14px;
+  --radius-sm: 8px;
+  --transition: 0.2s cubic-bezier(0.4,0,0.2,1);
 }
-body { background: var(--bg-dark); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; height: 100vh; overflow: hidden; }
-.app { display: grid; grid-template-columns: 260px 1fr; height: 100vh; }
 
-/* Sidebar */
-.sidebar { background: var(--bg-card); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
-.sidebar-header { padding: 20px; border-bottom: 1px solid var(--border); }
-.sidebar-header h1 { font-size: 18px; color: var(--accent); }
-.sidebar-header .greeting { font-size: 13px; color: var(--text-dim); margin-top: 4px; }
-.nav { flex: 1; overflow-y: auto; padding: 12px 0; }
-.nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 20px; cursor: pointer; transition: all 0.2s; color: var(--text-dim); font-size: 14px; }
-.nav-item:hover { background: var(--bg-hover); color: var(--text); }
-.nav-item.active { background: var(--bg-hover); color: var(--accent); border-right: 2px solid var(--accent); }
-.nav-item .icon { width: 20px; text-align: center; }
-.nav-item .badge { background: var(--danger); color: white; font-size: 10px; padding: 1px 6px; border-radius: 10px; margin-left: auto; }
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { height:100%; overflow:hidden; }
+body { background:var(--bg-primary); color:var(--text-primary); font-family:'Inter',-apple-system,sans-serif; -webkit-font-smoothing:antialiased; }
 
-/* Main */
-.main { display: flex; flex-direction: column; overflow: hidden; }
-.topbar { padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-.topbar .date { font-size: 13px; color: var(--text-dim); }
-.topbar .jake-status { display: flex; align-items: center; gap: 8px; }
-.topbar .jake-status .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
-.topbar .jake-status span { font-size: 13px; color: var(--success); }
-.content { flex: 1; overflow-y: auto; padding: 24px; }
-
-/* Cards */
-.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
-.card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
-.card h3 { font-size: 15px; color: var(--accent); margin-bottom: 8px; }
-.card p { font-size: 13px; color: var(--text-dim); line-height: 1.5; }
-.card .metric { font-size: 32px; color: var(--text); font-weight: 700; }
-.card .label { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
-.card .change { font-size: 12px; margin-top: 4px; }
-.card .change.up { color: var(--success); }
-.card .change.down { color: var(--danger); }
-
-/* Tasks */
-.task-list { display: flex; flex-direction: column; gap: 8px; }
-.task { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; transition: all 0.2s; }
-.task:hover { border-color: var(--accent); }
-.task .checkbox { width: 18px; height: 18px; border: 2px solid var(--text-dim); border-radius: 4px; }
-.task.done .checkbox { background: var(--success); border-color: var(--success); }
-.task .title { flex: 1; font-size: 14px; }
-.task.done .title { text-decoration: line-through; color: var(--text-dim); }
-.task .score { font-size: 12px; padding: 2px 8px; border-radius: 10px; }
-.task .score.high { background: rgba(0,255,136,0.15); color: var(--success); }
-.task .score.low { background: rgba(255,68,102,0.15); color: var(--danger); }
-.task .telos { font-size: 11px; color: var(--text-dim); }
-
-/* Chat */
-.chat-area { display: flex; flex-direction: column; height: 100%; }
-.messages { flex: 1; overflow-y: auto; padding: 16px 0; }
-.message { display: flex; gap: 10px; margin-bottom: 16px; }
-.message.jake .avatar { background: var(--accent2); }
-.message.user .avatar { background: var(--text-dim); }
-.avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; font-weight: 700; flex-shrink: 0; }
-.message .bubble { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px; max-width: 70%; font-size: 14px; line-height: 1.5; }
-.message.jake .bubble { border-color: var(--accent2); }
-.chat-input { display: flex; gap: 8px; padding: 16px 0; }
-.chat-input input { flex: 1; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; color: var(--text); font-size: 14px; outline: none; }
-.chat-input input:focus { border-color: var(--accent); }
-.chat-input button { background: var(--accent); color: var(--bg-dark); border: none; border-radius: 8px; padding: 12px 20px; font-weight: 700; cursor: pointer; }
-
-/* Sections */
-.section { display: none; }
-.section.active { display: block; }
-.section-header { margin-bottom: 20px; }
-.section-header h2 { font-size: 24px; font-weight: 700; }
-.section-header p { font-size: 14px; color: var(--text-dim); margin-top: 4px; }
-
-/* Pipeline */
-.pipeline { display: flex; gap: 0; overflow-x: auto; }
-.pipeline-stage { flex: 1; min-width: 150px; }
-.pipeline-stage .stage-header { padding: 8px 12px; font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-dim); border-bottom: 2px solid var(--border); }
-.pipeline-stage .stage-count { font-size: 20px; color: var(--text); }
-.pipeline-card { margin: 8px; padding: 12px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; font-size: 13px; }
-.pipeline-card .company { color: var(--text); font-weight: 600; }
-.pipeline-card .role { color: var(--accent); font-size: 12px; }
-.pipeline-card .fit { display: inline-block; margin-top: 4px; padding: 2px 8px; border-radius: 10px; font-size: 11px; }
-
-/* Love note */
-.love-note { background: linear-gradient(135deg, #1a0a2e, #2a1a4a); border: 1px solid #4a2a6a; border-radius: 12px; padding: 24px; }
-.love-note h3 { color: #ff69b4; }
-.love-note .note-content { font-size: 16px; line-height: 1.7; color: #ddd; margin-top: 12px; font-style: italic; }
-
-@media (max-width: 768px) {
-  .app { grid-template-columns: 1fr; }
-  .sidebar { display: none; }
+/* Noise texture overlay */
+body::before { content:''; position:fixed; inset:0; z-index:9999; pointer-events:none; opacity:0.035;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
+
+/* Ambient glow */
+.ambient-glow { position:fixed; width:600px; height:600px; border-radius:50%; filter:blur(120px); pointer-events:none; z-index:0; opacity:0.08; }
+.glow-1 { top:-200px; left:-100px; background:var(--accent-blue); animation:float 20s ease-in-out infinite; }
+.glow-2 { bottom:-200px; right:-100px; background:var(--accent-purple); animation:float 25s ease-in-out infinite reverse; }
+@keyframes float { 0%,100%{transform:translate(0,0)} 50%{transform:translate(30px,20px)} }
+
+/* ═══ LAYOUT ═══ */
+.app { display:grid; grid-template-columns:var(--sidebar-w) 1fr; height:100vh; position:relative; z-index:1; }
+
+/* ═══ SIDEBAR ═══ */
+.sidebar { background:var(--bg-secondary); border-right:1px solid var(--glass-border); display:flex; flex-direction:column; }
+.sidebar-brand { padding:20px 24px; border-bottom:1px solid var(--glass-border); display:flex; align-items:center; gap:12px; }
+.brand-icon { width:36px; height:36px; border-radius:10px; background:var(--accent-gradient); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:16px; color:white; box-shadow:var(--glow-purple); }
+.brand-text { font-weight:700; font-size:18px; background:var(--accent-gradient); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.brand-sub { font-size:11px; color:var(--text-tertiary); margin-top:1px; }
+
+.sidebar-greeting { padding:16px 24px 8px; font-size:13px; color:var(--text-secondary); }
+.sidebar-greeting strong { color:var(--accent-cyan); }
+
+.sidebar-nav { flex:1; overflow-y:auto; padding:8px 12px; }
+.nav-group-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; color:var(--text-tertiary); padding:12px 12px 6px; }
+.nav-item { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:var(--radius-sm); cursor:pointer; transition:var(--transition); color:var(--text-secondary); font-size:13px; font-weight:500; position:relative; }
+.nav-item:hover { background:var(--glass-hover); color:var(--text-primary); }
+.nav-item.active { background:var(--glass-hover); color:var(--accent-cyan); }
+.nav-item.active::before { content:''; position:absolute; left:0; top:50%; transform:translateY(-50%); width:3px; height:18px; border-radius:2px; background:var(--accent-gradient); }
+.nav-icon { width:18px; height:18px; display:flex; align-items:center; justify-content:center; font-size:14px; }
+.nav-badge { margin-left:auto; background:var(--error); color:white; font-size:10px; font-weight:700; padding:1px 7px; border-radius:10px; min-width:18px; text-align:center; }
+
+.sidebar-footer { padding:16px; border-top:1px solid var(--glass-border); }
+.sidebar-status { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--text-tertiary); }
+.status-dot { width:7px; height:7px; border-radius:50%; background:var(--success); animation:pulse-dot 2s ease-in-out infinite; }
+@keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+/* ═══ MAIN CONTENT ═══ */
+.main { display:flex; flex-direction:column; overflow:hidden; }
+
+.topbar { height:var(--topbar-h); padding:0 28px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--glass-border); background:var(--bg-secondary); flex-shrink:0; }
+.topbar-left { display:flex; align-items:center; gap:16px; }
+.topbar-date { font-size:13px; color:var(--text-tertiary); }
+.topbar-telos { display:flex; gap:6px; }
+.telo-pill { font-size:10px; font-weight:700; padding:3px 8px; border-radius:20px; border:1px solid var(--glass-border); }
+.telo-pill.p0 { color:var(--error); border-color:rgba(239,68,68,0.3); background:rgba(239,68,68,0.08); }
+.telo-pill.p1 { color:var(--accent-orange, #F97316); border-color:rgba(249,115,22,0.3); background:rgba(249,115,22,0.08); }
+.telo-pill.p2 { color:var(--accent-blue); border-color:rgba(59,130,246,0.3); background:rgba(59,130,246,0.08); }
+.telo-pill.p3 { color:var(--accent-emerald); border-color:rgba(52,211,153,0.3); background:rgba(52,211,153,0.08); }
+.telo-pill.p4 { color:var(--accent-purple); border-color:rgba(139,92,246,0.3); background:rgba(139,92,246,0.08); }
+.topbar-right { display:flex; align-items:center; gap:12px; }
+.cmd-btn { background:var(--glass); border:1px solid var(--glass-border); border-radius:var(--radius-sm); padding:6px 14px; color:var(--text-tertiary); font-size:12px; font-family:'JetBrains Mono',monospace; cursor:pointer; transition:var(--transition); display:flex; align-items:center; gap:6px; }
+.cmd-btn:hover { border-color:var(--glass-border-hover); color:var(--text-secondary); }
+.cmd-btn kbd { background:var(--bg-elevated); border:1px solid var(--glass-border); border-radius:3px; padding:1px 4px; font-size:10px; }
+
+.content { flex:1; overflow-y:auto; padding:28px; scroll-behavior:smooth; }
+.content::-webkit-scrollbar { width:6px; }
+.content::-webkit-scrollbar-track { background:transparent; }
+.content::-webkit-scrollbar-thumb { background:var(--bg-elevated); border-radius:3px; }
+
+/* ═══ SECTION ═══ */
+.section { display:none; animation:fadeIn 0.3s ease; }
+.section.active { display:block; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+.section-header { margin-bottom:24px; }
+.section-header h2 { font-size:28px; font-weight:800; letter-spacing:-0.5px; }
+.section-header h2 .gradient { background:var(--accent-gradient); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.section-header p { font-size:14px; color:var(--text-secondary); margin-top:4px; line-height:1.6; }
+
+/* ═══ GLASS CARD ═══ */
+.glass-card { background:var(--glass); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border-radius:var(--radius); border:1px solid var(--glass-border); padding:20px; transition:var(--transition); position:relative; overflow:hidden; }
+.glass-card:hover { border-color:var(--glass-border-hover); background:var(--glass-hover); }
+.glass-card::before { content:''; position:absolute; inset:0; border-radius:inherit; padding:1px; background:linear-gradient(135deg, rgba(255,255,255,0.1), transparent, rgba(255,255,255,0.05)); mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); mask-composite:exclude; -webkit-mask-composite:xor; pointer-events:none; }
+.glass-card h3 { font-size:13px; font-weight:600; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; }
+.metric { font-size:36px; font-weight:800; letter-spacing:-1px; font-variant-numeric:tabular-nums; }
+.metric-label { font-size:12px; color:var(--text-tertiary); margin-top:2px; }
+.metric-change { font-size:12px; font-weight:600; margin-top:4px; display:inline-flex; align-items:center; gap:3px; }
+.metric-change.up { color:var(--success); }
+.metric-change.down { color:var(--error); }
+
+/* Bento Grid */
+.bento { display:grid; gap:16px; }
+.bento-4 { grid-template-columns:repeat(4, 1fr); }
+.bento-3 { grid-template-columns:repeat(3, 1fr); }
+.bento-2 { grid-template-columns:repeat(2, 1fr); }
+.bento-wide { grid-column:span 2; }
+.bento-tall { grid-row:span 2; }
+
+/* ═══ SCORE RING ═══ */
+.score-ring { position:relative; width:48px; height:48px; }
+.score-ring svg { transform:rotate(-90deg); }
+.score-ring .value { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; }
+
+/* ═══ TASK LIST ═══ */
+.task-item { display:flex; align-items:center; gap:12px; padding:14px 16px; border-radius:var(--radius-sm); transition:var(--transition); cursor:pointer; }
+.task-item:hover { background:var(--glass-hover); }
+.task-check { width:20px; height:20px; border-radius:6px; border:2px solid var(--text-tertiary); flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:var(--transition); font-size:11px; color:white; }
+.task-item.done .task-check { background:var(--success); border-color:var(--success); }
+.task-item.done .task-title { text-decoration:line-through; color:var(--text-tertiary); }
+.task-title { flex:1; font-size:14px; font-weight:500; }
+.task-telos { font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px; }
+.task-score { font-size:11px; font-weight:700; padding:3px 8px; border-radius:10px; }
+.task-score.high { background:rgba(34,211,153,0.12); color:var(--accent-emerald); }
+.task-score.low { background:rgba(239,68,68,0.12); color:var(--error); }
+
+/* ═══ CHAT ═══ */
+.chat-container { display:flex; flex-direction:column; height:calc(100vh - var(--topbar-h) - 56px); }
+.chat-messages { flex:1; overflow-y:auto; padding:20px 0; }
+.chat-msg { display:flex; gap:12px; margin-bottom:20px; animation:msgIn 0.3s ease; }
+@keyframes msgIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+.chat-avatar { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; flex-shrink:0; }
+.chat-avatar.jake { background:var(--accent-gradient); color:white; box-shadow:var(--glow-purple); }
+.chat-avatar.user { background:var(--bg-elevated); color:var(--text-secondary); }
+.chat-bubble { background:var(--glass); border:1px solid var(--glass-border); border-radius:14px 14px 14px 4px; padding:14px 18px; max-width:75%; font-size:14px; line-height:1.7; }
+.chat-msg.user .chat-bubble { border-radius:14px 14px 4px 14px; background:rgba(59,130,246,0.08); border-color:rgba(59,130,246,0.15); }
+.chat-bubble .personality-tag { display:inline-block; font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px; margin-bottom:6px; }
+.chat-bubble .personality-tag.sass { background:rgba(236,72,153,0.12); color:var(--accent-pink); }
+.chat-bubble .personality-tag.focus { background:rgba(34,211,153,0.12); color:var(--accent-emerald); }
+.chat-bubble .personality-tag.nurse { background:rgba(139,92,246,0.12); color:var(--accent-purple); }
+.chat-input-area { display:flex; gap:8px; padding:16px 0 4px; }
+.chat-input { flex:1; background:var(--glass); border:1px solid var(--glass-border); border-radius:12px; padding:14px 18px; color:var(--text-primary); font-size:14px; font-family:inherit; outline:none; transition:var(--transition); }
+.chat-input:focus { border-color:var(--accent-blue); box-shadow:0 0 0 3px rgba(59,130,246,0.1); }
+.chat-input::placeholder { color:var(--text-tertiary); }
+.chat-send { background:var(--accent-gradient); border:none; border-radius:12px; padding:14px 22px; color:white; font-weight:700; font-size:14px; cursor:pointer; transition:var(--transition); display:flex; align-items:center; gap:6px; }
+.chat-send:hover { opacity:0.9; transform:scale(1.02); }
+.chat-send:active { transform:scale(0.98); }
+
+/* Typing indicator */
+.typing { display:flex; gap:4px; padding:8px 14px; }
+.typing span { width:7px; height:7px; border-radius:50%; background:var(--text-tertiary); animation:bounce 1.4s infinite; }
+.typing span:nth-child(2) { animation-delay:0.2s; }
+.typing span:nth-child(3) { animation-delay:0.4s; }
+@keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-8px)} }
+
+/* ═══ PIPELINE ═══ */
+.pipeline { display:flex; gap:0; overflow-x:auto; }
+.pipeline-col { flex:1; min-width:200px; }
+.pipeline-col-header { padding:10px 14px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--text-tertiary); border-bottom:2px solid var(--glass-border); display:flex; align-items:center; gap:8px; }
+.pipeline-count { background:var(--bg-elevated); border-radius:10px; padding:1px 7px; font-size:10px; }
+.pipeline-card { margin:8px; padding:14px; background:var(--glass); border:1px solid var(--glass-border); border-radius:var(--radius-sm); cursor:pointer; transition:var(--transition); }
+.pipeline-card:hover { border-color:var(--glass-border-hover); transform:translateY(-1px); }
+.pipeline-card .company { font-weight:600; font-size:14px; }
+.pipeline-card .role { color:var(--accent-cyan); font-size:12px; margin-top:2px; }
+.pipeline-card .meta { display:flex; gap:8px; margin-top:8px; font-size:11px; color:var(--text-tertiary); }
+.pipeline-card .fit { display:inline-block; padding:2px 8px; border-radius:10px; font-size:10px; font-weight:700; }
+.pipeline-card .fit.high { background:rgba(34,211,153,0.12); color:var(--accent-emerald); }
+.pipeline-card .fit.mid { background:rgba(234,179,8,0.12); color:var(--warning); }
+
+/* ═══ LOVE NOTE ═══ */
+.love-note-card { background:linear-gradient(135deg, rgba(139,92,246,0.08), rgba(236,72,153,0.08)); border:1px solid rgba(139,92,246,0.15); border-radius:var(--radius); padding:24px; }
+.love-note-card h3 { color:var(--accent-pink); font-size:14px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:12px; }
+.love-note-card .note-content { font-size:16px; line-height:1.8; color:var(--text-primary); font-style:italic; }
+.love-note-card .note- attribution { font-size:12px; color:var(--text-tertiary); margin-top:12px; }
+
+/* ═══ VENTURE CARD ═══ */
+.venture-status { display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
+.venture-status.live { background:rgba(34,211,153,0.12); color:var(--accent-emerald); }
+.venture-status.building { background:rgba(59,130,246,0.12); color:var(--accent-blue); }
+.venture-status.active { background:rgba(139,92,246,0.12); color:var(--accent-purple); }
+.venture-status.concept { background:rgba(234,179,8,0.12); color:var(--warning); }
+
+/* ═══ RESPONSIVE ═══ */
+@media (max-width:1024px) {
+  .bento-4 { grid-template-columns:repeat(2, 1fr); }
+  .bento-3 { grid-template-columns:repeat(2, 1fr); }
+}
+@media (max-width:768px) {
+  .app { grid-template-columns:1fr; }
+  .sidebar { display:none; }
+  .bento-4, .bento-3, .bento-2 { grid-template-columns:1fr; }
+  .pipeline { flex-direction:column; }
+  .bento-wide, .bento-tall { grid-column:auto; grid-row:auto; }
+}
+
+/* ═══ SHIMMER ═══ */
+.shimmer { background:linear-gradient(90deg, var(--glass) 0%, var(--glass-hover) 50%, var(--glass) 100%); background-size:200% 100%; animation:shimmer 1.5s infinite; }
+@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+/* ═══ PROGRESS BAR ═══ */
+.progress-bar { height:6px; background:var(--bg-elevated); border-radius:3px; overflow:hidden; }
+.progress-fill { height:100%; border-radius:3px; transition:width 0.8s ease; }
+.progress-fill.blue { background:var(--accent-blue); }
+.progress-fill.gradient { background:var(--accent-gradient); }
+.progress-fill.green { background:var(--accent-emerald); }
+
+/* ═══ SECTION SPECIFICS ═══ */
+.jake-avatar-large { width:48px; height:48px; border-radius:14px; background:var(--accent-gradient); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:20px; color:white; box-shadow:var(--glow-purple); }
+.health-ring { position:relative; width:80px; height:80px; margin:0 auto; }
+.health-ring svg { transform:rotate(-90deg); }
+.health-ring .ring-value { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.health-ring .ring-num { font-size:22px; font-weight:800; }
+.health-ring .ring-label { font-size:9px; color:var(--text-tertiary); text-transform:uppercase; letter-spacing:0.5px; }
+
+.niche-card { border-left:3px solid; padding-left:16px; }
+.niche-card.hot { border-color:var(--accent-pink); }
+.niche-card.warm { border-color:var(--warning); }
+.niche-card.cool { border-color:var(--accent-blue); }
 </style>
 </head>
 <body>
+<div class="ambient-glow glow-1"></div>
+<div class="ambient-glow glow-2"></div>
 <div class="app">
-  <nav class="sidebar">
-    <div class="sidebar-header">
-      <h1>Jake PAI</h1>
-      <div class="greeting">Yo, Mike. What is cook.</div>
+
+<!-- ═══ SIDEBAR ═══ -->
+<nav class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">J</div>
+    <div><div class="brand-text">Jake PAI</div><div class="brand-sub">Your Co-Founder</div></div>
+  </div>
+  <div class="sidebar-greeting">Yo, <strong>Mike</strong>. What's cook.</div>
+  
+  <div class="sidebar-nav">
+    <div class="nav-group-label">Today</div>
+    <div class="nav-item active" data-section="focus">
+      <span class="nav-icon">&#9733;</span> Focus
+      <span class="nav-badge">5</span>
     </div>
-    <div class="nav">
-      <div class="nav-item active" data-section="focus"><span class="icon">&#9673;</span> Focus Today <span class="badge">3</span></div>
-      <div class="nav-item" data-section="chat"><span class="icon">&#9993;</span> Chat with Jake</div>
-      <div class="nav-item" data-section="jobs"><span class="icon">&#9733;</span> Jobs (Signal) <span class="badge">12</span></div>
-      <div class="nav-item" data-section="ventures"><span class="icon">&#9670;</span> Ventures</div>
-      <div class="nav-item" data-section="health"><span class="icon">&#9829;</span> Health & Wellness</div>
-      <div class="nav-item" data-section="family"><span class="icon">&#9827;</span> Family & Relationships</div>
-      <div class="nav-item" data-section="finances"><span class="icon">&#36;</span> Finances</div>
-      <div class="nav-item" data-section="music"><span class="icon">&#9835;</span> Music & Suno</div>
-      <div class="nav-item" data-section="intel"><span class="icon">&#9881;</span> Intel Feed</div>
-      <div class="nav-item" data-section="calendar"><span class="icon">&#128197;</span> Calendar</div>
-      <div class="nav-item" data-section="niche"><span class="icon">&#128200;</span> Niche Radar</div>
+    <div class="nav-item" data-section="chat">
+      <span class="nav-icon">&#9993;</span> Chat with Jake
     </div>
-  </nav>
-  <div class="main">
-    <div class="topbar">
-      <div class="date" id="currentDate"></div>
-      <div class="jake-status"><div class="dot"></div><span>Jake is online</span></div>
+
+    <div class="nav-group-label">Pipeline</div>
+    <div class="nav-item" data-section="jobs">
+      <span class="nav-icon">&#128188;</span> Jobs
+      <span class="nav-badge">12</span>
     </div>
-    <div class="content">
+    <div class="nav-item" data-section="ventures">
+      <span class="nav-icon">&#128640;</span> Ventures
+    </div>
+    <div class="nav-item" data-section="niche">
+      <span class="nav-icon">&#128200;</span> Niche Radar
+      <span class="nav-badge">3</span>
+    </div>
 
-      <!-- FOCUS TODAY -->
-      <div class="section active" id="focus">
-        <div class="section-header">
-          <h2>What is cook today.</h2>
-          <p>Jake's TELOS-aligned focus for today. No shiny objects. Ship first.</p>
-        </div>
-        <div class="grid">
-          <div class="card"><h3>Ship Today</h3><div class="metric" id="shipToday">TransformFit MVP</div><div class="label">P0 — Financial Stability</div></div>
-          <div class="card"><h3>Applications Due</h3><div class="metric">5</div><div class="label">CAIO / VP AI Strategy / Remote</div></div>
-          <div class="card"><h3>Follow-Ups Stale</h3><div class="metric">3</div><div class="label">Send today or lose them</div></div>
-        </div>
-        <h3 style="margin:24px 0 12px;color:var(--accent)">Tasks</h3>
-        <div class="task-list" id="taskList">
-          <div class="task"><div class="checkbox"></div><div class="title">Ship TransformFit MVP — core coaching + Stripe</div><div class="score high">22/25</div><div class="telos">P0</div></div>
-          <div class="task"><div class="checkbox"></div><div class="title">Apply to 5 CAIO roles ( remote, $260K+ )</div><div class="score high">20/25</div><div class="telos">P0</div></div>
-          <div class="task"><div class="checkbox"></div><div class="title">Send 3 stale follow-ups</div><div class="score high">18/25</div><div class="telos">P1</div></div>
-          <div class="task"><div class="checkbox"></div><div class="title">Workout — 45 min weights + Birch walk</div><div class="score high">19/25</div><div class="telos">P3</div></div>
-          <div class="task"><div class="checkbox"></div><div class="title">Daily love note to James</div><div class="score high">25/25</div><div class="telos">P2</div></div>
-        </div>
-      </div>
+    <div class="nav-group-label">Life</div>
+    <div class="nav-item" data-section="health">
+      <span class="nav-icon">&#9829;</span> Health
+    </div>
+    <div class="nav-item" data-section="family">
+      <span class="nav-icon">&#127968;</span> Family
+    </div>
+    <div class="nav-item" data-section="finances">
+      <span class="nav-icon">&#36;</span> Finances
+    </div>
+    <div class="nav-item" data-section="music">
+      <span class="nav-icon">&#127925;</span> Music & Suno
+    </div>
 
-      <!-- CHAT -->
-      <div class="section" id="chat">
-        <div class="chat-area">
-          <div class="messages" id="chatMessages">
-            <div class="message jake"><div class="avatar">J</div><div class="bubble">Yo, Mike. What is cook. I pulled your pipeline — 3 follow-ups going stale and 5 apps due today. The Fixer says TransformFit ships this week or we are having a conversation. What is the one thing you are knocking out first?</div></div>
-          </div>
-          <div class="chat-input"><input type="text" id="chatInput" placeholder="Talk to Jake..." /><button onclick="sendMessage()">Send</button></div>
-        </div>
-      </div>
-
-      <!-- JOBS -->
-      <div class="section" id="jobs">
-        <div class="section-header"><h2>Signal — Job Search Intelligence</h2><p>Proactive, not reactive. Every job scored against your profile.</p></div>
-        <div class="pipeline">
-          <div class="pipeline-stage"><div class="stage-header">New <span class="stage-count">8</span></div><div class="pipeline-card"><div class="company">TechCorp</div><div class="role">Chief AI Officer</div><div class="fit" style="background:rgba(0,255,136,0.15);color:#00ff88">92% fit</div></div><div class="pipeline-card"><div class="company">HealthAI Inc</div><div class="role">VP AI Strategy</div><div class="fit" style="background:rgba(0,255,136,0.15);color:#00ff88">88% fit</div></div></div>
-          <div class="pipeline-stage"><div class="stage-header">Interested <span class="stage-count">3</span></div></div>
-          <div class="pipeline-stage"><div class="stage-header">Applied <span class="stage-count">1</span></div></div>
-          <div class="pipeline-stage"><div class="stage-header">Interviewing</div></div>
-          <div class="pipeline-stage"><div class="stage-header">Offer</div></div>
-        </div>
-      </div>
-
-      <!-- HEALTH -->
-      <div class="section" id="health">
-        <div class="section-header"><h2>Health & Wellness</h2><p>Bro, you haven't worked out in 3 days. That is not giving fitness-app-founder energy. Touch grass.</p></div>
-        <div class="grid">
-          <div class="card"><h3>Workouts This Week</h3><div class="metric">2/5</div><div class="label">Target: 5 sessions</div></div>
-          <div class="card"><h3>Mood Today</h3><div class="metric">7/10</div><div class="label">Moderate — go lift something</div></div>
-          <div class="card"><h3>Birch Walk</h3><div class="metric">20 min</div><div class="label">French Bulldog needs his walk</div></div>
-        </div>
-      </div>
-
-      <!-- FAMILY -->
-      <div class="section" id="family">
-        <div class="section-header"><h2>Family & Relationships</h2><p>James, Jacob, Alex, Birch. The real P0.</p></div>
-        <div class="love-note">
-          <h3>Today's Love Note for James</h3>
-          <div class="note-content">"Hey babe. I know the chaos is real right now, but I want you to know — you are the reason any of this is worth doing. The business can wait. You can't. I love you more than the MRR graph."</div>
-        </div>
-        <div class="grid" style="margin-top:16px">
-          <div class="card"><h3>Jacob (15) — Football/Track</h3><p>#79 OL/DL, Class of 2029, Pewaukee Pirates. jakerodgers2029.com is live. Recruiting season is NOW.</p></div>
-          <div class="card"><h3>Alex (12) — Soccer</h3><p>Next game: Saturday. Ask him about it.</p></div>
-          <div class="card"><h3>Birch — French Bulldog</h3><p>20 min walk today. He's giving you puppy eyes. Don't skip it.</p></div>
-        </div>
-      </div>
-
-      <!-- VENTURES -->
-      <div class="section" id="ventures">
-        <div class="section-header"><h2>Ventures</h2><p>Only Hawkeye has revenue. The rest need to ship. No cap.</p></div>
-        <div class="grid">
-          <div class="card"><h3>Hawkeye Auto Body AI</h3><div class="metric">LIVE</div><div class="label">Only revenue product</div></div>
-          <div class="card"><h3>TransformFit</h3><div class="metric">BUILDING</div><div class="label">MVP this week. No more excuses.</div></div>
-          <div class="card"><h3>RIG Consulting</h3><div class="metric">ACTIVE</div><div class="label">Inbound leads?</div></div>
-          <div class="card"><h3>Beautiful Ruin</h3><div class="metric">IN PRODUCTION</div><div class="label">Album. Suno sessions queued.</div></div>
-        </div>
-      </div>
-
-      <!-- FINANCES -->
-      <div class="section" id="finances">
-        <div class="section-header"><h2>Finances</h2><p>Vault is watching every dollar like it is the last one.</p></div>
-        <div class="grid">
-          <div class="card"><h3>MRR</h3><div class="metric">$0</div><div class="label">Hawkeye revenue TBD</div></div>
-          <div class="card"><h3>Burn Rate</h3><div class="metric">--</div><div class="label">Connect bank for auto-tracking</div></div>
-          <div class="card"><h3>Tax Prep</h3><div class="metric">Q2</div><div class="label">Next estimated payment: June 15</div></div>
-        </div>
-      </div>
-
-      <!-- MUSIC -->
-      <div class="section" id="music">
-        <div class="section-header"><h2>Music & Suno</h2><p>Beautiful Ruin album. Let's produce.</p></div>
-        <div class="grid">
-          <div class="card"><h3>Song Queue</h3><p>3 songs ready for Suno generation. Queue them up.</p></div>
-          <div class="card"><h3>Spotify Mood</h3><p>Based on your mood (7/10), here's a playlist: Focus Flow</p></div>
-        </div>
-      </div>
-
-      <!-- INTEL -->
-      <div class="section" id="intel">
-        <div class="section-header"><h2>Intel Feed</h2><p>Daily intelligence. Stay smarter.</p></div>
-        <div class="card"><h3>Today's Digest</h3><p>AI job market: 47 new CAIO-level roles posted this week. Enterprise AI adoption accelerating. TransformFit competitor X raised Series A. Read more...</p></div>
-      </div>
-
-      <!-- CALENDAR -->
-      <div class="section" id="calendar">
-        <div class="section-header"><h2>Calendar</h2><p>6 AM deep work. 10 AM meetings max. 6 PM family. Non-negotiable.</p></div>
-      </div>
-
-      <!-- NICHE RADAR -->
-      <div class="section" id="niche">
-        <div class="section-header"><h2>Niche Radar</h2><p>Daily $10K opportunities. Build in a day, make money.</p></div>
-        <div class="card"><h3>Today's Opportunities</h3><p>Scanning... Jake is looking for micro-SaaS, AI wrappers, and niche automations that can generate $10K+ with < 1 day of work.</p></div>
-      </div>
-
+    <div class="nav-group-label">Intel</div>
+    <div class="nav-item" data-section="intel">
+      <span class="nav-icon">&#128225;</span> Feed
+    </div>
+    <div class="nav-item" data-section="calendar">
+      <span class="nav-icon">&#128197;</span> Calendar
     </div>
   </div>
+
+  <div class="sidebar-footer">
+    <div class="sidebar-status">
+      <div class="status-dot"></div>
+      <span>Jake online</span>
+      <span style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10px;">v4.0</span>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══ MAIN ═══ -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-date" id="date"></div>
+      <div class="topbar-telos">
+        <span class="telo-pill p0">P0</span>
+        <span class="telo-pill p1">P1</span>
+        <span class="telo-pill p2">P2</span>
+        <span class="telo-pill p3">P3</span>
+        <span class="telo-pill p4">P4</span>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <button class="cmd-btn"><kbd>&#8984;K</kbd> Command</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ═══ FOCUS ═══ -->
+    <div class="section active" id="focus">
+      <div class="section-header">
+        <h2>What's <span class="gradient">cook</span> today.</h2>
+        <p>Jake's TELOS-aligned priorities. No shiny objects. Ship first.</p>
+      </div>
+
+      <div class="bento bento-4" style="margin-bottom:20px">
+        <div class="glass-card">
+          <h3>Ship Today</h3>
+          <div class="metric" style="color:var(--accent-cyan)">1</div>
+          <div class="metric-label">TransformFit MVP</div>
+          <div class="progress-bar" style="margin-top:12px"><div class="progress-fill gradient" style="width:65%"></div></div>
+          <div class="metric-change up">&#9650; 65% complete</div>
+        </div>
+        <div class="glass-card">
+          <h3>Applications Due</h3>
+          <div class="metric" style="color:var(--accent-blue)">5</div>
+          <div class="metric-label">CAIO / VP AI Strategy / Remote</div>
+          <div class="metric-change down">&#9660; 0 sent today</div>
+        </div>
+        <div class="glass-card">
+          <h3>Follow-Ups Stale</h3>
+          <div class="metric" style="color:var(--warning)">3</div>
+          <div class="metric-label">Days without contact: 5+</div>
+          <div class="metric-change down">&#9660; Losing them</div>
+        </div>
+        <div class="glass-card">
+          <h3>Fixer's Filter Score</h3>
+          <div class="metric" style="color:var(--accent-emerald)">22</div>
+          <div class="metric-label">/25 — Ship it now</div>
+          <div class="progress-bar" style="margin-top:12px"><div class="progress-fill green" style="width:88%"></div></div>
+        </div>
+      </div>
+
+      <div class="glass-card" style="margin-bottom:20px">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+          <div class="jake-avatar-large">J</div>
+          <div>
+            <div style="font-weight:700;font-size:14px">Jake says:</div>
+            <div style="font-size:12px;color:var(--text-tertiary)">Sassy co-founder mode</div>
+          </div>
+        </div>
+        <div class="chat-bubble" style="max-width:100%;border-radius:12px 12px 12px 4px">
+          <span class="personality-tag sass">&#128293; SASS</span><br>
+          Bet. Three follow-ups going stale. Zero apps sent yesterday. Zero. That's an L, bro. The MRR isn't gonna MRR itself. You've got 5 CAIO roles sitting there and they're not applying to themselves. One move: open the pipeline. Now. We're in our shipping era or we're not. Cap?
+        </div>
+      </div>
+
+      <h3 style="font-size:15px;font-weight:700;margin-bottom:12px">Tasks</h3>
+      <div id="taskList">
+        <div class="task-item"><div class="task-check"></div><div class="task-title">Ship TransformFit MVP — core coaching + Stripe</div><div class="task-telo-pill telo-pill p0">P0</div><div class="task-score high">22/25</div></div>
+        <div class="task-item"><div class="task-check"></div><div class="task-title">Apply to 5 CAIO roles (remote, $260K+)</div><div class="task-telo-pill telo-pill p0">P0</div><div class="task-score high">20/25</div></div>
+        <div class="task-item"><div class="task-check"></div><div class="task-title">Send 3 stale follow-ups</div><div class="task-telo-pill telo-pill p1">P1</div><div class="task-score high">18/25</div></div>
+        <div class="task-item"><div class="task-check"></div><div class="task-title">Workout — 45 min weights + Birch walk</div><div class="task-telo-pill telo-pill p3">P3</div><div class="task-score high">19/25</div></div>
+        <div class="task-item"><div class="task-check"></div><div class="task-title">Daily love note for James</div><div class="task-telo-pill telo-pill p2">P2</div><div class="task-score high">25/25</div></div>
+      </div>
+    </div>
+
+    <!-- ═══ CHAT ═══ -->
+    <div class="section" id="chat">
+      <div class="chat-container">
+        <div class="chat-messages" id="chatMessages">
+          <div class="chat-msg jake">
+            <div class="chat-avatar jake">J</div>
+            <div class="chat-bubble"><span class="personality-tag sass">&#128293; SASS</span><br>Yo, Mike. What's cook. I pulled your pipeline — 3 follow-ups going stale and 5 apps due today. The Fixer says TransformFit ships this week or we're having a conversation. What's the one thing you're knocking out first?</div>
+          </div>
+          <div class="chat-msg jake">
+            <div class="chat-avatar jake">J</div>
+            <div class="chat-bubble"><span class="personality-tag nurse">&#128156; FRENCH NURSE</span><br>Also — you skipped the gym yesterday. Your P3 is literally called "health and fitness." The French nurse in me says: go lift something heavy. The co-founder in me says: a fitness app founder who doesn't work out is giving delulu energy. No cap. Go.</div>
+          </div>
+        </div>
+        <div class="chat-input-area">
+          <input class="chat-input" id="chatInput" placeholder="Talk to Jake..." autocomplete="off">
+          <button class="chat-send" onclick="sendMessage()">&#10148; Send</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ JOBS (Signal) ═══ -->
+    <div class="section" id="jobs">
+      <div class="section-header">
+        <h2><span class="gradient">Signal</span> — Job Intelligence</h2>
+        <p>Proactive, not reactive. Every opportunity scored against your profile.</p>
+      </div>
+      <div class="pipeline">
+        <div class="pipeline-col"><div class="pipeline-col-header">New <span class="pipeline-count">8</span></div>
+          <div class="pipeline-card"><div class="company">HealthAI Corp</div><div class="role">Chief AI Officer</div><div class="meta"><span class="fit high">92% fit</span><span>$320K-$437K</span><span>Remote</span></div></div>
+          <div class="pipeline-card"><div class="company">FinServe Global</div><div class="role">VP AI Strategy</div><div class="meta"><span class="fit high">88% fit</span><span>$280K-$380K</span><span>Remote</span></div></div>
+          <div class="pipeline-card"><div class="company">MedTech Innovate</div><div class="role">Head of AI</div><div class="meta"><span class="fit mid">75% fit</span><span>$260K-$350K</span><span>Hybrid</span></div></div>
+        </div>
+        <div class="pipeline-col"><div class="pipeline-col-header">Interested <span class="pipeline-count">3</span></div>
+          <div class="pipeline-card"><div class="company">CloudScale</div><div class="role">CAIO</div><div class="meta"><span class="fit high">85% fit</span><span>$300K-$400K</span><span>Remote</span></div></div>
+        </div>
+        <div class="pipeline-col"><div class="pipeline-col-header">Applied <span class="pipeline-count">2</span></div>
+          <div class="pipeline-card"><div class="company">DataSphere</div><div class="role">Dir. of AI</div><div class="meta"><span class="fit high">80% fit</span></div></div>
+        </div>
+        <div class="pipeline-col"><div class="pipeline-col-header">Interviewing</div></div>
+        <div class="pipeline-col"><div class="pipeline-col-header">Offer</div></div>
+      </div>
+    </div>
+
+    <!-- ═══ VENTURES ═══ -->
+    <div class="section" id="ventures">
+      <div class="section-header">
+        <h2>Ventures</h2>
+        <p>Only Hawkeye has revenue. The rest need to ship. No cap.</p>
+      </div>
+      <div class="bento bento-2">
+        <div class="glass-card bento-wide">
+          <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:16px">
+            <div><h3 style="margin-bottom:4px">Hawkeye Auto Body AI</h3><span class="venture-status live">LIVE</span></div>
+            <div class="metric" style="color:var(--accent-emerald);font-size:24px">$2.4K</div>
+          </div>
+          <div class="progress-bar"><div class="progress-fill green" style="width:30%"></div></div>
+          <div class="metric-label">MRR — Target: $8K</div>
+        </div>
+        <div class="glass-card bento-wide">
+          <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:16px">
+            <div><h3 style="margin-bottom:4px">TransformFit</h3><span class="venture-status building">BUILDING</span></div>
+            <div style="font-size:24px;font-weight:800;color:var(--accent-blue)">65%</div>
+          </div>
+          <div class="progress-bar"><div class="progress-fill blue" style="width:65%"></div></div>
+          <div class="metric-label">MVP Progress — Ship this week</div>
+        </div>
+        <div class="glass-card">
+          <h3>RIG Consulting</h3>
+          <span class="venture-status active">ACTIVE</span>
+          <div class="metric-label" style="margin-top:8px">AI consulting practice. Inbound leads: 2 pending.</div>
+        </div>
+        <div class="glass-card">
+          <h3>Beautiful Ruin</h3>
+          <span class="venture-status concept">IN PRODUCTION</span>
+          <div class="metric-label" style="margin-top:8px">Album. Suno sessions queued. 3 tracks ready.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ HEALTH ═══ -->
+    <div class="section" id="health">
+      <div class="section-header">
+        <h2>Health & <span class="gradient">Wellness</span></h2>
+        <p>Bro, you haven't worked out in 3 days. That's not giving founder energy.</p>
+      </div>
+      <div class="bento bento-3">
+        <div class="glass-card" style="text-align:center">
+          <h3>Weekly Workouts</h3>
+          <div class="health-ring">
+            <svg width="80" height="80" viewBox="0 0 80 80"><circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="6"/><circle cx="40" cy="40" r="34" fill="none" stroke="url(#grad1)" stroke-width="6" stroke-dasharray="213.6" stroke-dashoffset="128.2" stroke-linecap="round"/><defs><linearGradient id="grad1"><stop offset="0%" stop-color="#22D3EE"/><stop offset="100%" stop-color="#3B82F6"/></linearGradient></defs></svg>
+            <div class="ring-value"><div class="ring-num">2/5</div><div class="ring-label">Workouts</div></div>
+          </div>
+          <div class="metric-label" style="margin-top:12px">Target: 5 sessions/week</div>
+        </div>
+        <div class="glass-card" style="text-align:center">
+          <h3>Mood Today</h3>
+          <div class="health-ring">
+            <svg width="80" height="80" viewBox="0 0 80 80"><circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="6"/><circle cx="40" cy="40" r="34" fill="none" stroke="url(#grad2)" stroke-width="6" stroke-dasharray="213.6" stroke-dashoffset="64.1" stroke-linecap="round"/><defs><linearGradient id="grad2"><stop offset="0%" stop-color="#8B5CF6"/><stop offset="100%" stop-color="#EC4899"/></linearGradient></defs></svg>
+            <div class="ring-value"><div class="ring-num">7/10</div><div class="ring-label">Moderate</div></div>
+          </div>
+          <div class="metric-label" style="margin-top:12px">Go lift something heavy</div>
+        </div>
+        <div class="glass-card" style="text-align:center">
+          <h3>Birch Walk</h3>
+          <div class="metric" style="color:var(--accent-emerald)">20 min</div>
+          <div class="metric-label">French Bulldog needs his walk</div>
+          <div style="margin-top:16px;font-size:40px">&#128054;</div>
+          <div class="metric-label">He's giving you puppy eyes right now.</div>
+        </div>
+      </div>
+      <div class="glass-card" style="margin-top:16px;max-width:600px">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+          <div class="jake-avatar-large" style="width:36px;height:36px;font-size:16px;border-radius:10px">J</div>
+          <div><span class="personality-tag nurse">&#128156; FRENCH NURSE</span></div>
+        </div>
+        <div class="chat-bubble" style="max-width:100%;border-radius:12px">Mike, day 4 without a workout. I say this because I care: a fitness app founder who doesn't work out is like a chef who doesn't eat. The gym isn't optional — it's market research. 30 minutes. That's it. Birch will hold you accountable. He's already by the door.</div>
+      </div>
+    </div>
+
+    <!-- ═══ FAMILY ═══ -->
+    <div class="section" id="family">
+      <div class="section-header">
+        <h2>Family & <span class="gradient">Relationships</span></h2>
+        <p>James, Jacob, Alex, Birch. The real P0.</p>
+      </div>
+      <div class="love-note-card" style="margin-bottom:20px">
+        <h3>&#128140; Today's Love Note for James</h3>
+        <div class="note-content">"Hey babe. I know the startup chaos is real right now, but I want you to know — you're the reason any of this is worth doing. The business can wait. You can't. I love you more than the MRR graph."</div>
+        <div class="note-attribution">— Your daily words of affirmation (Love Language: Words of Affirmation)</div>
+      </div>
+      <div class="bento bento-3">
+        <div class="glass-card">
+          <h3>&#127945; Jacob (15)</h3>
+          <div style="font-size:14px;margin-top:8px;line-height:1.7;color:var(--text-secondary)">
+            <div style="color:var(--accent-cyan);font-weight:600">#79 OL/DL &bull; Class of 2029</div>
+            <div>Pewaukee Pirates &bull; Football + Track</div>
+            <div style="margin-top:8px"><a href="#" style="color:var(--accent-blue);font-size:13px">jakerodgers2029.com &#8599;</a></div>
+            <div style="margin-top:8px;font-size:13px;color:var(--text-tertiary)">Recruiting season: NOW. Push to D1 programs.</div>
+          </div>
+        </div>
+        <div class="glass-card">
+          <h3>&#9917; Alex (12)</h3>
+          <div style="font-size:14px;margin-top:8px;line-height:1.7;color:var(--text-secondary)">
+            <div style="color:var(--accent-emerald);font-weight:600">Soccer &bull; Next game: Saturday</div>
+            <div style="margin-top:8px;font-size:13px;color:var(--text-tertiary)">Ask him about it. He'll light up.</div>
+          </div>
+        </div>
+        <div class="glass-card">
+          <h3>&#128054; Birch</h3>
+          <div style="font-size:14px;margin-top:8px;line-height:1.7;color:var(--text-secondary)">
+            <div style="color:var(--warning);font-weight:600">French Bulldog &bull; 20 min walk today</div>
+            <div style="margin-top:8px;font-size:13px;color:var(--text-tertiary)">Training focus: sit, stay, come. Consistency is key. Temperature sensitive — no midday walks.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ FINANCES ═══ -->
+    <div class="section" id="finances">
+      <div class="section-header">
+        <h2><span class="gradient">Finances</span></h2>
+        <p>Vault is watching every dollar like it's the last one.</p>
+      </div>
+      <div class="bento bento-3">
+        <div class="glass-card">
+          <h3>Total MRR</h3>
+          <div class="metric" style="color:var(--accent-emerald)">$2.4K</div>
+          <div class="metric-label">Hawkeye only — target: $8K</div>
+          <div class="metric-change up">&#9650; +$200 from last month</div>
+        </div>
+        <div class="glass-card">
+          <h3>Burn Rate</h3>
+          <div class="metric">--</div>
+          <div class="metric-label">Connect bank for auto-tracking</div>
+        </div>
+        <div class="glass-card">
+          <h3>Tax Prep</h3>
+          <div class="metric" style="color:var(--warning)">Q2</div>
+          <div class="metric-label">Next estimated payment: June 15</div>
+          <div style="margin-top:12px;font-size:13px;color:var(--text-tertiary)">Sole prop status. Track all expenses. Vault is on it.</div>
+        </div>
+      </div>
+      <div class="glass-card" style="margin-top:20px">
+        <h3>Revenue by Venture</h3>
+        <div style="display:flex;gap:24px;margin-top:12px;flex-wrap:wrap">
+          <div><span style="color:var(--accent-emerald);font-weight:700">Hawkeye:</span> $2.4K/mo</div>
+          <div><span style="color:var(--accent-blue);font-weight:700">TransformFit:</span> $0 (pre-launch)</div>
+          <div><span style="color:var(--accent-purple);font-weight:700">RIG Consulting:</span> Pipeline: 2 leads</div>
+          <div><span style="color:var(--accent-pink);font-weight:700">Beautiful Ruin:</span> $0 (in production)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ MUSIC ═══ -->
+    <div class="section" id="music">
+      <div class="section-header">
+        <h2>Music & <span class="gradient">Suno</span></h2>
+        <p>Beautiful Ruin album. Let's produce.</p>
+      </div>
+      <div class="bento bento-2">
+        <div class="glass-card">
+          <h3>&#127911; Song Queue</h3>
+          <div style="margin-top:12px;font-size:14px;line-height:2;color:var(--text-secondary)">
+            <div style="display:flex;justify-content:space-between"><span>1. "Ruin Me Slow"</span><span style="color:var(--success)">Ready</span></div>
+            <div style="display:flex;justify-content:space-between"><span>2. "Neon Ghosts"</span><span style="color:var(--warning)">Drafting</span></div>
+            <div style="display:flex;justify-content:space-between"><span>3. "The Fixer"</span><span style="color:var(--accent-blue)">Concept</span></div>
+          </div>
+          <div style="margin-top:12px"><button class="cmd-btn" style="width:100%;justify-content:center;padding:10px">Generate Next Song &#10148;</button></div>
+        </div>
+        <div class="glass-card">
+          <h3>&#127925; Spotify Mood</h3>
+          <div style="margin-top:8px;font-size:14px;color:var(--text-secondary)">
+            Based on your mood (7/10): <strong style="color:var(--accent-cyan)">Focus Flow</strong>
+          </div>
+          <div style="margin-top:16px;font-size:13px;color:var(--text-tertiary);line-height:1.7">
+            Deep focus electronic. Lo-fi beats with 808 undertones. Perfect for shipping code and closing deals.
+          </div>
+          <div style="margin-top:12px"><button class="cmd-btn" style="width:100%;justify-content:center;padding:10px">Open in Spotify &#10148;</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ INTEL ═══ -->
+    <div class="section" id="intel">
+      <div class="section-header">
+        <h2>Intel <span class="gradient">Feed</span></h2>
+        <p>Daily intelligence. Stay smarter than the market.</p>
+      </div>
+      <div class="glass-card" style="margin-bottom:16px">
+        <h3 style="color:var(--accent-cyan)">&#128225; Today's Digest</h3>
+        <div style="margin-top:12px;font-size:14px;line-height:1.8;color:var(--text-secondary)">
+          <div style="margin-bottom:8px"><strong style="color:var(--text-primary)">Job Market:</strong> 47 new CAIO-level roles this week. Enterprise AI adoption accelerating. Remote-friendly positions up 23% MoM.</div>
+          <div style="margin-bottom:8px"><strong style="color:var(--text-primary)">AI Industry:</strong> OpenAI launches GPT-5. Google DeepMind publishes on agentic systems. Healthcare AI market projected to hit $187B by 2030.</div>
+          <div style="margin-bottom:8px"><strong style="color:var(--text-primary)">Competitors:</strong> TransformFit competitor raised $4M Series A. Hawkeye competitor launched AI estimation tool.</div>
+          <div><strong style="color:var(--text-primary)">Niche Radar:</strong> AI-powered cover letter generator ($8K/mo potential). Automated real estate listing writer ($12K/mo). Personal brand AI for LinkedIn ($15K/mo).</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ CALENDAR ═══ -->
+    <div class="section" id="calendar">
+      <div class="section-header">
+        <h2>Calendar</h2>
+        <p>6 AM deep work. 6 PM family. Non-negotiable.</p>
+      </div>
+      <div class="glass-card">
+        <div style="display:grid;grid-template-columns:80px 1fr;gap:8px;font-size:14px;line-height:2">
+          <div style="color:var(--accent-cyan);font-weight:600;font-family:'JetBrains Mono',monospace">06:00</div><div>&#9733; Deep Work — TransformFit MVP</div>
+          <div style="color:var(--accent-cyan);font-weight:600;font-family:'JetBrains Mono',monospace">08:00</div><div>&#128225; Intel Digest + Job Applications</div>
+          <div style="color:var(--accent-blue);font-weight:600;font-family:'JetBrains Mono',monospace">10:00</div><div>&#128188; 5 CAIO Applications + Cover Letters</div>
+          <div style="color:var(--accent-purple);font-weight:600;font-family:'JetBrains Mono',monospace">12:00</div><div>&#127861; Lunch + Birch Walk</div>
+          <div style="color:var(--accent-blue);font-weight:600;font-family:'JetBrains Mono',monospace">13:00</div><div>&#128640; Follow-ups + Outreach</div>
+          <div style="color:var(--accent-emerald);font-weight:600;font-family:'JetBrains Mono',monospace">15:00</div><div>&#127947;&#65039; Workout + Health Check</div>
+          <div style="color:var(--accent-pink);font-weight:600;font-family:'JetBrains Mono',monospace">18:00</div><div>&#127968; Family time. Hard stop. No exceptions.</div>
+          <div style="color:var(--accent-purple);font-weight:600;font-family:'JetBrains Mono',monospace">21:00</div><div>&#128161; Evening Debrief with Jake</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ NICHE RADAR ═══ -->
+    <div class="section" id="niche">
+      <div class="section-header">
+        <h2>Niche <span class="gradient">Radar</span></h2>
+        <p>Daily $10K opportunities. Build in a day, make money.</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="glass-card niche-card hot">
+          <div style="display:flex;justify-content:space-between;align-items:start">
+            <div><h3 style="color:var(--accent-pink)">AI Cover Letter Generator</h3><div style="font-size:13px;color:var(--text-secondary);margin-top:4px">Personalized cover letters from job descriptions using AI. Target: job seekers, career coaches.</div></div>
+            <div style="text-align:right"><div style="font-size:18px;font-weight:800;color:var(--accent-emerald)">$8K/mo</div><div style="font-size:11px;color:var(--text-tertiary)">1 day build</div></div>
+          </div>
+          <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+            <span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:10px;background:rgba(34,211,153,0.12);color:var(--accent-emerald)">Fixer's: 20/25</span>
+            <span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:10px;background:rgba(59,130,246,0.12);color:var(--accent-blue)">P0 trace</span>
+          </div>
+        </div>
+        <div class="glass-card niche-card warm">
+          <div style="display:flex;justify-content:space-between;align-items:start">
+            <div><h3 style="color:var(--warning)">Real Estate Listing AI</h3><div style="font-size:13px;color:var(--text-secondary);margin-top:4px">Automated property listings from photos + data. Target: realtors, Zillow scrapers.</div></div>
+            <div style="text-align:right"><div style="font-size:18px;font-weight:800;color:var(--accent-emerald)">$12K/mo</div><div style="font-size:11px;color:var(--text-tertiary)">3 day build</div></div>
+          </div>
+          <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+            <span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:10px;background:rgba(234,179,8,0.12);color:var(--warning)">Fixer's: 16/25</span>
+            <span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:10px;background:rgba(139,92,246,0.12);color:var(--accent-purple)">P1 trace</span>
+          </div>
+        </div>
+        <div class="glass-card niche-card cool">
+          <div style="display:flex;justify-content:space-between;align-items:start">
+            <div><h3 style="color:var(--accent-blue)">Personal Brand AI for LinkedIn</h3><div style="font-size:13px;color:var(--text-secondary);margin-top:4px">Auto-generate thought leadership posts from your expertise. Target: solo founders, consultants.</div></div>
+            <div style="text-align:right"><div style="font-size:18px;font-weight:800;color:var(--accent-emerald)">$15K/mo</div><div style="font-size:11px;color:var(--text-tertiary)">5 day build</div></div>
+          </div>
+          <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+            <span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:10px;background:rgba(59,130,246,0.12);color:var(--accent-blue)">Fixer's: 14/25</span>
+            <span style="font-size:11px;font-weight:700;padding:3px 8px;border-radius:10px;background:rgba(139,92,246,0.12);color:var(--accent-purple)">P1 trace</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
 </div>
+</div>
+
 <script>
-  // Date
-  document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-US', {weekday:'long',month:'long',day:'numeric',year:'numeric'});
-  // Navigation
-  document.querySelectorAll('.nav-item').forEach(item => {
-    item.addEventListener('click', () => {
-      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-      item.classList.add('active');
-      document.getElementById(item.dataset.section).classList.add('active');
-    });
+// Date
+const d = new Date();
+document.getElementById('date').textContent = d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+
+// Navigation
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    item.classList.add('active');
+    document.getElementById(item.dataset.section).classList.add('active');
   });
-  // Chat
-  function sendMessage() {
-    const input = document.getElementById('chatInput');
-    const msg = input.value.trim();
-    if (!msg) return;
-    const messages = document.getElementById('chatMessages');
-    messages.innerHTML += '<div class="message user"><div class="avatar">M</div><div class="bubble">' + msg + '</div></div>';
-    input.value = '';
-    setTimeout(() => {
-      messages.innerHTML += '<div class="message jake"><div class="avatar">J</div><div class="bubble">Bet. Let me think on that. (Jake PAI v4.0 — backend connecting...)</div></div>';
-      messages.scrollTop = messages.scrollHeight;
-    }, 1000);
+});
+
+// Task toggle
+document.querySelectorAll('.task-item').forEach(t => {
+  t.addEventListener('click', () => {
+    t.classList.toggle('done');
+    t.querySelector('.task-check').textContent = t.classList.contains('done') ? '✓' : '';
+  });
+});
+
+// Chat
+const jakeResponses = [
+  {tag:'sass',emoji:'&#128293;',text:"Bet. Let me pull that up. One sec — actually, you should be pulling it up yourself. That's what a co-founder who cares would say. Now go."},{tag:'nurse',emoji:'&#128156;',text:"Mike. Bro. Have you eaten today? Drank water? The French nurse in me is giving you that look. Take 5 minutes. Then we ship."},{tag:'focus',emoji:'&#127919;',text:"That traces to P0 — financial stability. Here's the move: do the ugly work first. The follow-ups. The applications. Then the fun stuff. Cap?"},{tag:'sass',emoji:'&#128293;',text:"That's giving 'I'll do it tomorrow' energy. And tomorrow becomes next week. And next week becomes 'what happened to April?' We're shipping TODAY. No cap."},{tag:'nurse',emoji:'&#128156;',text:"Real talk — you're doing more than you think. The fact that you're up and asking questions means you haven't quit. That counts. Now let's make it count more."},{tag:'focus',emoji:'&#127919;',text:"Fixer's Filter: that idea scores a 12/25. Translation: hard no. It doesn't trace to P0-P4. We ship TransformFit first. THEN we play with shinies."},{tag:'sass',emoji:'&#128293;',text:"Nah, I'm gonna need you to hear me on this. You said the same thing about ResumeAI. And JARVIS. And that LinkedIn tool. Ship FIRST. Ideas SECOND. Always."},{tag:'nurse',emoji:'&#128156;',text:"You know what? Jacob had a great game last night. You know what would make it even better? If you were there for the next one. 6 PM hard stop. Family first. Always."}
+];
+
+function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  const messages = document.getElementById('chatMessages');
+  messages.innerHTML += '<div class="chat-msg user"><div class="chat-avatar user">M</div><div class="chat-bubble">'+msg.replace(/</g,'&lt;')+'</div></div>';
+  input.value = '';
+  // Show typing
+  const typingId = 'typing-'+Date.now();
+  messages.innerHTML += '<div class="chat-msg jake" id="'+typingId+'"><div class="chat-avatar jake">J</div><div class="typing"><span></span><span></span><span></span></div></div>';
+  messages.scrollTop = messages.scrollHeight;
+  setTimeout(() => {
+    const resp = jakeResponses[Math.floor(Math.random()*jakeResponses.length)];
+    const el = document.getElementById(typingId);
+    if (el) el.outerHTML = '<div class="chat-msg jake"><div class="chat-avatar jake">J</div><div class="chat-bubble"><span class="personality-tag '+resp.tag+'">'+resp.emoji+' '+resp.tag.toUpperCase()+'</span><br>'+resp.text+'</div></div>';
     messages.scrollTop = messages.scrollHeight;
+  }, 1200);
+}
+document.getElementById('chatInput').addEventListener('keypress', e => { if(e.key==='Enter') sendMessage(); });
+
+// Keyboard shortcut
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+    e.preventDefault();
+    document.querySelector('[data-section="chat"]').click();
+    setTimeout(() => document.getElementById('chatInput').focus(), 100);
   }
-  document.getElementById('chatInput').addEventListener('keypress', e => { if (e.key === 'Enter') sendMessage(); });
-  // Task toggle
-  document.querySelectorAll('.task').forEach(t => {
-    t.addEventListener('click', () => {
-      t.classList.toggle('done');
-    });
-  });
+});
 </script>
 </body>
 </html>
