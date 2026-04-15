@@ -617,6 +617,19 @@ body::before { content:''; position:fixed; inset:0; z-index:9999; pointer-events
       <div id="aeonSkills" style="min-height:60px"></div>
     </div>
 
+    <!-- ═══ SECOND BRAIN ═══ -->
+    <div class="section" id="second-brain">
+      <div class="section-header">
+        <h2>Second <span class="gradient">Brain</span></h2>
+        <p>9,000+ documents indexed. Search across your entire knowledge base.</p>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <input id="brainQuery" placeholder="Search your knowledge base..." style="flex:1;background:var(--bg-muted);border:1px solid var(--border);border-radius:6px;padding:10px 14px;color:var(--text-primary);font-size:14px;font-family:inherit" onkeypress="if(event.key==='Enter')brainSearch()">
+        <button onclick="brainSearch()" style="background:linear-gradient(135deg,var(--accent-purple),var(--accent-blue));color:#fff;border:none;border-radius:6px;padding:10px 16px;font-size:13px;cursor:pointer;font-family:inherit;font-weight:500">Search</button>
+      </div>
+      <div id="brainResults" style="min-height:40px"></div>
+    </div>
+
     <!-- ═══ CAPABILITY DASHBOARD ═══ -->
     <div class="section" id="capabilities">
       <div class="section-header">
@@ -2288,6 +2301,37 @@ function renderAeonSkills() {
   }
   html += '</div><div style="margin-top:12px;font-size:11px;color:var(--text-muted)">92 skills configured. Self-healing active. Reactive triggers armed. Powered by Aeon + GLM-5.1.</div>';
   container.innerHTML = html;
+}
+
+// ═══ SECOND BRAIN SEARCH ═══
+async function brainSearch() {
+  const q = document.getElementById('brainQuery').value.trim();
+  if (!q) return;
+  const container = document.getElementById('brainResults');
+  container.innerHTML = '<div style="padding:16px;text-align:center;color:var(--text-muted)">Searching 9,000+ documents...</div>';
+  try {
+    // Direct Supabase REST query with text search
+    const url = `${SUPABASE_URL}/rest/v1/jake_documents?select=file_path,chunk_index,content,file_type&or=(content.ilike.*${encodeURIComponent(q)}*,file_path.ilike.*${encodeURIComponent(q)}*)&limit=8`;
+    const r = await fetch(url, { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } });
+    const data = await r.json();
+    if (data && data.length > 0) {
+      let html = '<div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">'+data.length+' results found</div>';
+      for (const doc of data) {
+        const fp = doc.file_path.split('/').slice(-3).join('/');
+        html += '<div style="background:var(--bg-muted);border:1px solid var(--border);border-radius:6px;padding:10px 12px;margin-bottom:6px">';
+        html += '<div style="font-size:10px;color:var(--accent-purple);margin-bottom:4px">'+fp.replace(/</g,'&lt;')+' <span style="color:var(--text-muted);margin-left:6px">'+doc.file_type+' #'+doc.chunk_index+'</span></div>';
+        const snippet = doc.content.substring(0, 200).replace(/</g,'&lt;');
+        const qe = q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+        const highlighted = snippet.replace(new RegExp(qe,'gi'), '<span style="background:rgba(139,92,246,0.3);padding:0 2px;border-radius:2px">$&</span>');
+        html += '<div style="font-size:12px;color:var(--text-secondary);line-height:1.5">'+highlighted+'...</div></div>';
+      }
+      container.innerHTML = html;
+    } else {
+      container.innerHTML = '<div style="padding:16px;color:var(--text-secondary)">No results for "'+q.replace(/</g,'&lt;')+'"</div>';
+    }
+  } catch(err) {
+    container.innerHTML = '<div style="padding:16px;color:var(--accent-red)">Error: '+err.message+'</div>';
+  }
 }
 
 // ═══ CAPABILITY DASHBOARD ═══
