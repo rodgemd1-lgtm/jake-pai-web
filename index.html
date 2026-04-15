@@ -1884,27 +1884,52 @@ function sendMessage() {
   messages.innerHTML += '<div class="chat-msg jake" id="'+typingId+'"><div class="chat-avatar jake">J</div><div class="typing"><span></span><span></span><span></span></div></div>';
   messages.scrollTop = messages.scrollHeight;
 
-  // Call Supabase RPC for real AI-powered Jake response
-  sb.rpc('jake_chat', { user_message: msg }).then(result => {
-    if (result && result.length > 0) {
-      const resp = result[0];
-      const el = document.getElementById(typingId);
-      if (el) el.outerHTML = '<div class="chat-msg jake"><div class="chat-avatar jake">J</div><div class="chat-bubble"><span class="personality-tag '+resp.personality_tag+'">&#128156; '+resp.personality_tag.toUpperCase()+'</span><br>'+resp.assistant_message.replace(/</g,'&lt;')+'</div></div>';
-      messages.scrollTop = messages.scrollHeight;
+  // Try Vercel LLM API first, then Supabase RPC, then static
+  const API_URL = 'https://jake-pai.vercel.app/api/chat';
+  fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: msg })
+  }).then(r => r.json()).then(data => {
+    const el = document.getElementById(typingId);
+    if (!el) return;
+    let text, tag, modelInfo;
+    if (Array.isArray(data)) {
+      // Supabase RPC fallback format
+      const resp = data[0];
+      text = resp.assistant_message || resp.response || '';
+      tag = resp.personality_tag || 'sass';
+      modelInfo = resp.llm_fallback ? '(keyword fallback)' : '(rpc)';
+    } else if (data.assistant_message) {
+      // Vercel LLM format
+      text = data.assistant_message;
+      tag = data.personality_tag || 'strategist';
+      modelInfo = data.llm ? '(llm: '+(data.model||'unknown').split('/').pop()+')' : '(rpc)';
     } else {
-      // Fallback to static responses if RPC fails
+      text = data.error || 'Jake is thinking...';
+      tag = 'offline';
+      modelInfo = '(error)';
+    }
+    el.outerHTML = '<div class="chat-msg jake"><div class="chat-avatar jake">J</div><div class="chat-bubble"><span class="personality-tag '+tag+'">&#128156; '+tag.toUpperCase()+'</span><span style="font-size:9px;color:var(--text-muted);margin-left:6px">'+modelInfo+'</span><br>'+text.replace(/</g,'&lt;')+'</div></div>';
+    messages.scrollTop = messages.scrollHeight;
+  }).catch(err => {
+    console.log('Vercel API failed, trying RPC:', err);
+    sb.rpc('jake_chat', { user_message: msg }).then(result => {
+      const el = document.getElementById(typingId);
+      if (!el) return;
+      if (result && result.length > 0) {
+        const resp = result[0];
+        el.outerHTML = '<div class="chat-msg jake"><div class="chat-avatar jake">J</div><div class="chat-bubble"><span class="personality-tag '+resp.personality_tag+'">&#128156; '+resp.personality_tag.toUpperCase()+'</span><span style="font-size:9px;color:var(--text-muted);margin-left:6px">(rpc)</span><br>'+resp.assistant_message.replace(/</g,'&lt;')+'</div></div>';
+      } else {
+        el.outerHTML = '<div class="chat-msg jake"><div class="chat-avatar jake">J</div><div class="chat-bubble">Jake got disconnected. Try again.</div></div>';
+      }
+      messages.scrollTop = messages.scrollHeight;
+    }).catch(err2 => {
       const fb = jakeResponses[Math.floor(Math.random()*jakeResponses.length)];
       const el = document.getElementById(typingId);
-      if (el) el.outerHTML = '<div class="chat-msg jake"><div class="chat-avatar jake">J</div><div class="chat-bubble"><span class="personality-tag '+fb.tag+'">'+fb.emoji+' '+fb.tag.toUpperCase()+'</span><br>'+fb.text+'</div></div>';
+      if (el) el.outerHTML = '<div class="chat-msg jake"><div class="chat-avatar jake">J</div><div class="chat-bubble"><span class="personality-tag '+fb.tag+'">'+fb.emoji+' '+fb.tag.toUpperCase()+'</span><span style="font-size:9px;color:var(--text-muted);margin-left:6px">(offline)</span><br>'+fb.text+'</div></div>';
       messages.scrollTop = messages.scrollHeight;
-    }
-  }).catch(err => {
-    // Fallback to static responses on error
-    console.log('Chat RPC failed, using fallback:', err);
-    const fb = jakeResponses[Math.floor(Math.random()*jakeResponses.length)];
-    const el = document.getElementById(typingId);
-    if (el) el.outerHTML = '<div class="chat-msg jake"><div class="chat-avatar jake">J</div><div class="chat-bubble"><span class="personality-tag '+fb.tag+'">'+fb.emoji+' '+fb.tag.toUpperCase()+'</span><br>'+fb.text+'</div></div>';
-    messages.scrollTop = messages.scrollHeight;
+    });
   });
 }
 document.getElementById('chatInput').addEventListener('keypress', e => { if(e.key==='Enter') sendMessage(); });
