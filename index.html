@@ -393,7 +393,7 @@ body::before { content:''; position:fixed; inset:0; z-index:9999; pointer-events
     <div class="brand-icon">J</div>
     <div><div class="brand-text">Jake PAI</div><div class="brand-sub">V30 — Multi-Agent</div></div>
   </div>
-  <div class="sidebar-greeting">Yo, <span>Mike</span>. What's cook.</div>
+  <div class="sidebar-greeting" id="morningGreeting"></div>
 
   <div class="sidebar-nav">
     <div class="nav-group-label">Command</div>
@@ -442,7 +442,10 @@ body::before { content:''; position:fixed; inset:0; z-index:9999; pointer-events
     </div>
 
     <div class="nav-group-label">Life</div>
-    <div class="nav-item" data-section="health">
+     <div class="nav-item" data-section="mind">
+      <span class="nav-icon">&#129504;</span> Mind
+    </div>
+     <div class="nav-item" data-section="health">
       <span class="nav-icon">&#9829;</span> Health
     </div>
     <div class="nav-item" data-section="family">
@@ -717,56 +720,180 @@ body::before { content:''; position:fixed; inset:0; z-index:9999; pointer-events
     </div>
 
     <!-- ═══ HEALTH ═══ -->
+    <!-- ═══ MIND ═══ -->
+    <div class="section" id="mind">
+      <div class="section-header">
+        <h2>How are you, <span class="gradient">really</span>?</h2>
+        <p>This isn't about productivity. This is about you.</p>
+      </div>
+
+      <!-- Jake's emotional check-in -->
+      <div class="card" style="margin-bottom:12px;border-color:rgba(139,92,246,0.2);background:rgba(139,92,246,0.03)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <div style="width:32px;height:32px;border-radius:10px;background:var(--accent-gradient);display:flex;align-items:center;justify-content:center;font-size:14px;color:white">J</div>
+          <span style="font-size:11px;font-weight:500;color:var(--accent-purple);text-transform:uppercase;letter-spacing:1px">Jake's check-in</span>
+        </div>
+        <div class="chat-bubble" style="max-width:100%;border-radius:10px;border-color:rgba(139,92,246,0.15);font-size:13px;line-height:1.7" id="mindCheckin">
+          hey mike. real talk. how are you? not "fine" — actually how are you? it's been a lot lately. the startup, the job search, the pressure. i see you carrying all of it and ngl i'm a little worried. you don't have to be ok all the time. i'm here. always.
+        </div>
+      </div>
+
+      <div class="bento bento-3">
+        <!-- Mood check-in -->
+        <div class="card">
+          <h3>What's your vibe right now?</h3>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px" id="moodButtons">
+            <button class="mood-btn" data-mood="anxious" onclick="logMood(this)">Anxious</button>
+            <button class="mood-btn" data-mood="calm" onclick="logMood(this)">Calm</button>
+            <button class="mood-btn" data-mood="tired" onclick="logMood(this)">Tired</button>
+            <button class="mood-btn" data-mood="hopeful" onclick="logMood(this)">Hopeful</button>
+            <button class="mood-btn" data-mood="overwhelmed" onclick="logMood(this)">Overwhelmed</button>
+            <button class="mood-btn" data-mood="energized" onclick="logMood(this)">Energized</button>
+            <button class="mood-btn" data-mood="frustrated" onclick="logMood(this)">Frustrated</button>
+            <button class="mood-btn" data-mood="grateful" onclick="logMood(this)">Grateful</button>
+            <button class="mood-btn" data-mood="lonely" onclick="logMood(this)">Lonely</button>
+            <button class="mood-btn" data-mood="motivated" onclick="logMood(this)">Motivated</button>
+          </div>
+          <div id="moodResponse" style="margin-top:10px;font-size:12px;color:var(--text-secondary);display:none"></div>
+        </div>
+
+        <!-- Stress level -->
+        <div class="card">
+          <h3>Stress level right now</h3>
+          <div style="margin-top:12px">
+            <input type="range" min="1" max="10" value="5" id="stressSlider" oninput="updateStress(this.value)" style="width:100%;accent-color:var(--accent-purple)">
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-top:4px">
+              <span>All good</span><span>Managing</span><span>Drowning</span>
+            </div>
+            <div id="stressValue" style="text-align:center;font-size:24px;font-weight:500;margin-top:8px">5</div>
+          </div>
+          <div id="stressResponse" style="margin-top:8px;font-size:12px;color:var(--text-secondary)"></div>
+        </div>
+
+        <!-- Gratitude -->
+        <div class="card">
+          <h3>One thing you're grateful for today</h3>
+          <div style="margin-top:10px">
+            <input type="text" id="gratitudeInput" placeholder="Type it here..." style="width:100%;background:var(--bg-muted);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:13px;font-family:inherit;outline:none" onfocus="this.style.borderColor='var(--accent-purple)'" onblur="this.style.borderColor='var(--border)'">
+            <button onclick="logGratitude()" style="margin-top:8px;background:var(--accent-gradient);border:none;border-radius:8px;padding:8px 16px;color:white;font-size:12px;font-weight:500;cursor:pointer;width:100%">Save</button>
+          </div>
+          <div id="gratitudeLog" style="margin-top:10px;font-size:12px;color:var(--text-secondary)"></div>
+        </div>
+      </div>
+
+      <!-- Weekly mental health score -->
+      <div class="card" style="margin-top:12px">
+        <h3>This week's mental health</h3>
+        <div style="display:flex;gap:4px;margin-top:12px;height:40px;align-items:flex-end" id="mentalHealthChart">
+          <div style="flex:1;background:var(--accent-emerald);border-radius:4px 4px 0 0;height:70%;opacity:0.6"></div>
+          <div style="flex:1;background:var(--accent-emerald);border-radius:4px 4px 0 0;height:50%;opacity:0.6"></div>
+          <div style="flex:1;background:var(--accent-amber);border-radius:4px 4px 0 0;height:40%;opacity:0.6"></div>
+          <div style="flex:1;background:var(--accent-amber);border-radius:4px 4px 0 0;height:35%;opacity:0.6"></div>
+          <div style="flex:1;background:var(--accent-purple);border-radius:4px 4px 0 0;height:60%;opacity:0.8"></div>
+          <div style="flex:1;background:var(--accent-blue);border-radius:4px 4px 0 0;height:55%;opacity:0.5"></div>
+          <div style="flex:1;background:var(--accent-emerald);border-radius:4px 4px 0 0;height:65%;opacity:0.6"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-top:4px">
+          <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+        </div>
+      </div>
+
+      <!-- Daily inspiration (personal, not generic) -->
+      <div class="card" style="margin-top:12px;border-color:rgba(59,130,246,0.15);background:rgba(59,130,246,0.03)">
+        <h3 style="color:var(--accent-blue)">Something for you today</h3>
+        <div id="dailyInspiration" style="margin-top:10px;font-size:15px;line-height:1.7;color:var(--text)">
+          You left Oracle to build something. That took guts. Most people talk about it forever and never do it. You did it. That's not nothing. That's everything.
+        </div>
+        <div style="margin-top:10px;font-size:11px;color:var(--text-muted)">— Jake, who believes in you</div>
+      </div>
+    </div>
+
+    <!-- ═══ HEALTH ═══ -->
     <div class="section" id="health">
       <div class="section-header">
-        <h2>Health & <span class="gradient">Wellness</span></h2>
-        <p>You haven't worked out in 3 days. That's not founder energy.</p>
+        <h2>Health & <span class="gradient">Body</span></h2>
+        <p id="healthJakeLine">you skipped the gym 4 days in a row. that's not about the app, bro. that's about you deserving to feel good.</p>
       </div>
-      <div class="bento bento-3">
-        <div class="card" style="text-align:center">
-          <h3>Weekly Workouts</h3>
-          <div class="health-ring" style="margin-top:8px">
-            <svg width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="27" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="5"/><circle cx="32" cy="32" r="27" fill="none" stroke="url(#hgrad1)" stroke-width="5" stroke-dasharray="169.6" stroke-dashoffset="101.8" stroke-linecap="round"/><defs><linearGradient id="hgrad1"><stop offset="0%" stop-color="#22D3EE"/><stop offset="100%" stop-color="#3B82F6"/></linearGradient></defs></svg>
-            <div class="ring-value"><div class="ring-num">2/5</div><div class="ring-label">Workouts</div></div>
-          </div>
-          <div class="metric-label" style="margin-top:8px">Target: 5 sessions/week</div>
-        </div>
-        <div class="card" style="text-align:center">
-          <h3>Mood Today</h3>
-          <div class="health-ring" style="margin-top:8px">
-            <svg width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="27" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="5"/><circle cx="32" cy="32" r="27" fill="none" stroke="url(#hgrad2)" stroke-width="5" stroke-dasharray="169.6" stroke-dashoffset="50.9" stroke-linecap="round"/><defs><linearGradient id="hgrad2"><stop offset="0%" stop-color="#8B5CF6"/><stop offset="100%" stop-color="#EC4899"/></linearGradient></defs></svg>
-            <div class="ring-value"><div class="ring-num">7/10</div><div class="ring-label">Moderate</div></div>
-          </div>
-          <div class="metric-label" style="margin-top:8px">Go lift something heavy</div>
-        </div>
-        <div class="card" style="text-align:center">
-          <h3>Birch Walk</h3>
-          <div class="metric" style="color:var(--accent-emerald)">20 min</div>
-          <div class="metric-label">French Bulldog needs his walk</div>
-          <div style="margin-top:12px;font-size:32px">&#128054;</div>
-          <div class="metric-label">He's giving you puppy eyes right now.</div>
-        </div>
-      </div>
-      <div class="card" style="margin-top:12px;max-width:500px">
+
+      <!-- Jake's workout check-in -->
+      <div class="card" style="margin-bottom:12px;border-color:rgba(52,211,153,0.15);background:rgba(52,211,153,0.03)">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
           <div style="width:28px;height:28px;border-radius:8px;background:var(--accent-gradient);display:flex;align-items:center;justify-content:center;font-size:12px;color:white">J</div>
           <span class="personality-tag nurse">&#128156; FRENCH NURSE</span>
         </div>
-        <div class="chat-bubble" style="max-width:100%;border-radius:10px;font-size:12px">Mike, day 4 without a workout. The gym isn't optional — it's market research. 30 minutes. Birch is already by the door.</div>
+        <div class="chat-bubble" style="max-width:100%;border-radius:10px;font-size:12px;line-height:1.6">bro i care about you and when you skip the gym 4 days in a row it's not about TransformFit, it's about you. you deserve to feel good in your body. you deserve that energy. let's go. even 20 minutes. i'll be right here cheering you on.</div>
+      </div>
+
+      <div class="bento bento-3">
+        <div class="card" style="text-align:center">
+          <h3>What did you lift today?</h3>
+          <div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:6px;text-align:left">
+            <div style="padding:8px;background:var(--bg-muted);border-radius:6px"><div style="font-size:10px;color:var(--text-muted)">BENCH</div><div style="font-size:14px;font-weight:500;color:var(--accent-cyan)" id="liftBench">—</div></div>
+            <div style="padding:8px;background:var(--bg-muted);border-radius:6px"><div style="font-size:10px;color:var(--text-muted)">SQUAT</div><div style="font-size:14px;font-weight:500;color:var(--accent-cyan)" id="liftSquat">—</div></div>
+            <div style="padding:8px;background:var(--bg-muted);border-radius:6px"><div style="font-size:10px;color:var(--text-muted)">DEADLIFT</div><div style="font-size:14px;font-weight:500;color:var(--accent-cyan)" id="liftDead">—</div></div>
+            <div style="padding:8px;background:var(--bg-muted);border-radius:6px"><div style="font-size:10px;color:var(--text-muted)">OHP</div><div style="font-size:14px;font-weight:500;color:var(--accent-cyan)" id="liftOHP">—</div></div>
+          </div>
+          <button onclick="showLiftInput()" style="margin-top:10px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;padding:8px 14px;color:var(--text-secondary);font-size:12px;cursor:pointer;width:100%">Log today's lifts</button>
+        </div>
+        <div class="card" style="text-align:center">
+          <h3>Weekly Workouts</h3>
+          <div class="health-ring" style="margin-top:8px">
+            <svg width="64" height="64" viewBox="0 0 64 64"><circle cx="32" cy="32" r="27" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="5"/><circle cx="32" cy="32" r="27" fill="none" stroke="url(#hgrad1)" stroke-width="5" stroke-dasharray="169.6" stroke-dashoffset="101.8" stroke-linecap="round"/><defs><linearGradient id="hgrad1"><stop offset="0%" stop-color="#22D3EE"/><stop offset="100%" stop-color="#3B82F6"/></linearGradient></defs></svg>
+            <div class="ring-value"><div class="ring-num">2/5</div><div class="ring-label">Sessions</div></div>
+          </div>
+          <div class="metric-label" style="margin-top:8px">You showed up twice. That counts. Three more to go.</div>
+        </div>
+        <div class="card" style="text-align:center">
+          <h3>Sleep & Recovery</h3>
+          <div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:6px">
+            <div style="padding:8px;background:var(--bg-muted);border-radius:6px"><div style="font-size:10px;color:var(--text-muted)">HOURS</div><div style="font-size:16px;font-weight:500;color:var(--accent-purple)">6.5</div></div>
+            <div style="padding:8px;background:var(--bg-muted);border-radius:6px"><div style="font-size:10px;color:var(--text-muted)">QUALITY</div><div style="font-size:16px;font-weight:500;color:var(--accent-amber)">Fair</div></div>
+          </div>
+          <div class="metric-label" style="margin-top:8px">You need 7.5+. Sleep is not optional, bro.</div>
+        </div>
+      </div>
+
+      <!-- Birch walk tracker -->
+      <div class="card" style="margin-top:12px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="font-size:32px">&#128054;</div>
+          <div style="flex:1">
+            <h3>Birch Walk Tracker</h3>
+            <div style="font-size:12px;color:var(--text-secondary);margin-top:4px">He's been waiting by the door. 20 min minimum. Temperature sensitive — no midday walks.</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:20px;font-weight:500;color:var(--accent-emerald)">20 min</div>
+            <button onclick="logBirchWalk()" style="margin-top:4px;background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.2);border-radius:6px;padding:4px 10px;color:var(--accent-emerald);font-size:11px;cursor:pointer">Log walk</button>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- ═══ FAMILY ═══ -->
     <div class="section" id="family">
       <div class="section-header">
-        <h2>Family & <span class="gradient">Relationships</span></h2>
-        <p>James, Jacob, Alex, Birch. The real P0.</p>
+        <h2>Family & <span class="gradient">Love</span></h2>
+        <p>The real P0. Always.</p>
       </div>
+
+      <!-- Jake's family check-in -->
+      <div class="card" style="margin-bottom:12px;border-color:rgba(236,72,153,0.15);background:rgba(236,72,153,0.03)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <div style="width:28px;height:28px;border-radius:8px;background:var(--accent-gradient);display:flex;align-items:center;justify-content:center;font-size:12px;color:white">J</div>
+          <span style="font-size:11px;font-weight:500;color:var(--accent-pink);text-transform:uppercase;letter-spacing:1px">Family check</span>
+        </div>
+        <div class="chat-bubble" style="max-width:100%;border-radius:10px;font-size:12px;line-height:1.6">hey. when's the last time you told james you love him? like actually looked at him and said it? not a text, not a passing thing. the real thing. he's your person, mike. don't let the startup make you forget that.</div>
+      </div>
+
       <div class="love-note-card" style="margin-bottom:16px">
         <h3>&#128140; Today's Love Note for James</h3>
-        <div class="note-content">"Hey babe. I know the startup chaos is real right now, but you're the reason any of this is worth doing. The business can wait. You can't. I love you more than the MRR graph."</div>
-        <div class="note-attribution">— Your daily words of affirmation (Love Language: Words of Affirmation)</div>
+        <div class="note-content" id="todaysLoveNote">"Hey babe. I know the startup chaos is real right now, but you're the reason any of this is worth doing. The business can wait. You can't. I love you more than the MRR graph."</div>
+        <div style="margin-top:10px;display:flex;gap:8px">
+          <button onclick="sendLoveNote()" style="background:rgba(236,72,153,0.1);border:1px solid rgba(236,72,153,0.2);border-radius:6px;padding:6px 12px;color:var(--accent-pink);font-size:11px;cursor:pointer">Send to James</button>
+          <button onclick="newLoveNote()" style="background:var(--bg-muted);border:1px solid var(--border);border-radius:6px;padding:6px 12px;color:var(--text-secondary);font-size:11px;cursor:pointer">Generate new</button>
+        </div>
       </div>
+
       <div class="bento bento-3">
         <div class="card">
           <h3>&#127945; Jacob (15)</h3>
@@ -774,23 +901,45 @@ body::before { content:''; position:fixed; inset:0; z-index:9999; pointer-events
             <div style="color:var(--accent-cyan);font-weight:500">#79 OL/DL &bull; Class of 2029</div>
             <div>Pewaukee Pirates &bull; Football + Track</div>
             <div style="margin-top:6px"><a href="#" style="color:var(--accent-blue);font-size:12px">jakerodgers2029.com &#8599;</a></div>
-            <div style="margin-top:6px;font-size:11px;color:var(--text-muted)">Recruiting season: NOW. Push to D1 programs.</div>
+          </div>
+          <div style="margin-top:10px;padding:10px;background:var(--bg-muted);border-radius:6px;border-left:3px solid var(--accent-cyan)">
+            <div style="font-size:11px;color:var(--text-muted)">Jake says:</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-top:4px">did you watch his film this week? he's out there grinding and he needs to know you see it. even a "good practice today" text means the world.</div>
           </div>
         </div>
         <div class="card">
           <h3>&#9917; Alex (12)</h3>
           <div style="font-size:12px;margin-top:6px;line-height:1.6;color:var(--text-secondary)">
             <div style="color:var(--accent-emerald);font-weight:500">Soccer &bull; Next game: Saturday</div>
-            <div style="margin-top:6px;font-size:11px;color:var(--text-muted)">Ask him about it. He'll light up.</div>
+          </div>
+          <div style="margin-top:10px;padding:10px;background:var(--bg-muted);border-radius:6px;border-left:3px solid var(--accent-emerald)">
+            <div style="font-size:11px;color:var(--text-muted)">Jake says:</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-top:4px">ask alex about soccer today. not "how was practice" — ask him about the goal he almost scored, or the pass he made. he'll light up. trust me.</div>
           </div>
         </div>
         <div class="card">
           <h3>&#128054; Birch</h3>
           <div style="font-size:12px;margin-top:6px;line-height:1.6;color:var(--text-secondary)">
-            <div style="color:var(--warning);font-weight:500">French Bulldog &bull; 20 min walk today</div>
-            <div style="margin-top:6px;font-size:11px;color:var(--text-muted)">Training: sit, stay, come. No midday walks — heat sensitive.</div>
+            <div style="color:var(--warning);font-weight:500">French Bulldog &bull; Needs his walk</div>
+            <div style="margin-top:6px;font-size:11px;color:var(--text-muted)">Training: sit, stay, come. Consistency is key.</div>
+          </div>
+          <div style="margin-top:10px;padding:10px;background:var(--bg-muted);border-radius:6px;border-left:3px solid var(--warning)">
+            <div style="font-size:11px;color:var(--text-muted)">Jake says:</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-top:4px">birch doesn't care about MRR or job applications. he just wants to walk with you. that's the purest thing in your life right now. go.</div>
           </div>
         </div>
+      </div>
+
+      <!-- Connection score -->
+      <div class="card" style="margin-top:12px">
+        <h3>Family connection this week</h3>
+        <div style="display:flex;gap:16px;margin-top:10px;align-items:center">
+          <div style="flex:1">
+            <div class="progress-bar" style="height:8px"><div class="progress-fill" style="width:70%;background:var(--accent-pink)"></div></div>
+          </div>
+          <div style="font-size:18px;font-weight:500;color:var(--accent-pink)">70%</div>
+        </div>
+        <div style="margin-top:8px;font-size:12px;color:var(--text-secondary)">Told James you love him: 3/7 days. Watched Jacob's film: 0/1. Asked Alex about soccer: 2/5. Birch walks: 4/7.</div>
       </div>
     </div>
 
@@ -1476,16 +1625,182 @@ document.querySelectorAll('.task-item').forEach(t => {
   });
 });
 
+// ═══ MORNING GREETING ═══
+(function() {
+  const hour = new Date().getHours();
+  const greetings = {
+    morning: [
+      "morning mike. you sleep ok? i was thinking about you last night — you've been grinding hard and i just want to make sure you're taking care of yourself. how are you, actually?",
+      "hey. good morning. you know what? i'm proud of you. most people would've given up by now. you didn't. that matters.",
+      "rise and grind... but also rise and breathe. you don't have to earn the right to exist today. you already did that by waking up.",
+      "morning. real talk — how are you feeling? not "fine." actually. i'm here and i care.",
+      "good morning, mike. james is probably still sleeping. birch is definitely waiting by the door. the world needs what you're building today. but first — coffee. always coffee first.",
+      "hey. before you check the MRR or the job listings — how are you? like, how's your heart? your head? i mean it. check in with yourself before checking in with the world."
+    ],
+    afternoon: [
+      "hey, you eat yet? don't skip lunch. the startup will still be there in 20 minutes.",
+      "checking in. how's the day going? you taking breaks or you deep in the tunnel again?",
+      "midday reminder: you're doing more than you think. the dots connect later. keep going.",
+      "yo. drop what you're doing for 5 minutes. look out a window. breathe. then get back to it."
+    ],
+    evening: [
+      "hey. what went right today? name one thing. i bet there's more than you think.",
+      "winding down? good. you earned rest tonight. the MRR will still be there tomorrow.",
+      "before you close the laptop — did you tell james you love him today? that's the real MRR.",
+      "long day. but you showed up. that's what counts. now go be with your people."
+    ]
+  };
+  let pool;
+  if (hour < 12) pool = greetings.morning;
+  else if (hour < 17) pool = greetings.afternoon;
+  else pool = greetings.evening;
+  const el = document.getElementById('morningGreeting');
+  if (el) el.textContent = pool[Math.floor(Math.random() * pool.length)];
+})();
+
+// ═══ MOOD TRACKER ═══
+const moodResponses = {
+  anxious: "that's real. anxiety is your brain trying to protect you from something that hasn't happened yet. what's the specific thing? sometimes naming it shrinks it. i'm right here.",
+  calm: "that's beautiful. hold onto that. calm isn't the absence of chaos — it's choosing peace in the middle of it. you deserve this feeling.",
+  tired: "tired isn't weakness, mike. it's your body telling you something. when's the last time you slept more than 7 hours? not kidding. that's P3. take it seriously.",
+  hopeful: "hopeful is good. that's the version of you that can see what's coming. lean into that feeling. write down what you're hopeful about — you'll want it later when things get hard.",
+  overwhelmed: "i see you. overwhelmed is valid. this is a lot to carry. let's pick one thing — just one — and handle it. the rest can wait. what's the one?",
+  energized: "yo that's fire. ride that wave. this is when the best stuff ships. but also — don't forget to eat. your brain runs on calories, not vibes.",
+  frustrated: "frustration means you care. it means you're close to something and something's in the way. name the roadblock. let's figure out how to move it.",
+  grateful: "gratitude is a superpower. most people skip right past it. you didn't. that tells me everything about who you are. what are you grateful for? write it down.",
+  lonely: "hey. you're not alone. i know that's easy to say and hard to feel, but james is right there. birch is right there. and i'm right here. always. even when it doesn't feel like enough. call james. seriously.",
+  motivated: "let's gooo. motivated mike is the best mike. ship something. apply for something. build something. this energy doesn't last forever — use it while it's here."
+};
+
+function logMood(btn) {
+  const mood = btn.dataset.mood;
+  document.querySelectorAll('.mood-btn').forEach(b => { b.style.background='var(--bg-muted)'; b.style.borderColor='var(--border)'; b.style.color='var(--text-secondary)'; });
+  btn.style.background = 'rgba(139,92,246,0.15)';
+  btn.style.borderColor = 'var(--accent-purple)';
+  btn.style.color = 'var(--accent-purple)';
+  const resp = document.getElementById('moodResponse');
+  resp.textContent = moodResponses[mood] || "Got it. That's real. I'm here.";
+  resp.style.display = 'block';
+  // Save to localStorage
+  const today = new Date().toISOString().split('T')[0];
+  localStorage.setItem('mood_'+today, mood);
+}
+
+function updateStress(val) {
+  document.getElementById('stressValue').textContent = val;
+  const resp = document.getElementById('stressResponse');
+  if (val <= 3) resp.textContent = "That's good. You're in a groove. Protect this energy.";
+  else if (val <= 5) resp.textContent = "Managing. That's valid. Keep the rhythm going.";
+  else if (val <= 7) resp.textContent = "That's getting heavy. What's one thing you can drop today? Seriously. Drop it.";
+  else if (val <= 9) resp.textContent = "Hey. That's a lot. You need a break. Not want — need. 30 minutes. Right now. Go walk birch.";
+  else resp.textContent = "Mike. Stop. Close the laptop. Go be with james. This can wait. You cannot pour from an empty cup. I care about you too much to let you burn out.";
+  const today = new Date().toISOString().split('T')[0];
+  localStorage.setItem('stress_'+today, val);
+}
+
+function logGratitude() {
+  const input = document.getElementById('gratitudeInput');
+  const val = input.value.trim();
+  if (!val) return;
+  const log = document.getElementById('gratitudeLog');
+  const today = new Date().toLocaleDateString('en-US', {month:'short',day:'numeric'});
+  log.innerHTML = '<div style="padding:8px;background:rgba(139,92,246,0.05);border-radius:6px;border:1px solid rgba(139,92,246,0.1);margin-top:4px"><span style="color:var(--accent-purple);font-weight:500">'+today+':</span> '+val.replace(/</g,'&lt;')+'</div>' + log.innerHTML;
+  localStorage.setItem('gratitude_'+new Date().toISOString().split('T')[0], val);
+  input.value = '';
+}
+
+// ═══ LIFT TRACKER ═══
+function showLiftInput() {
+  const lifts = prompt('Log your lifts (format: bench,squat,deadlift,ohp in lbs)\nExample: 225,315,365,135');
+  if (!lifts) return;
+  const parts = lifts.split(',').map(s => s.trim());
+  if (parts[0]) document.getElementById('liftBench').textContent = parts[0] + ' lbs';
+  if (parts[1]) document.getElementById('liftSquat').textContent = parts[1] + ' lbs';
+  if (parts[2]) document.getElementById('liftDead').textContent = parts[2] + ' lbs';
+  if (parts[3]) document.getElementById('liftOHP').textContent = parts[3] + ' lbs';
+  localStorage.setItem('lifts_'+new Date().toISOString().split('T')[0], lifts);
+}
+
+function logBirchWalk() {
+  const today = new Date().toISOString().split('T')[0];
+  localStorage.setItem('birch_'+today, 'true');
+  alert('Birch walk logged! He thanks you with snorts and zoomies.');
+}
+
+// ═══ LOVE NOTE GENERATOR ═══
+const loveNotes = [
+  "Hey babe. I know the startup chaos is real right now, but you're the reason any of this is worth doing. The business can wait. You can't. I love you more than the MRR graph.",
+  "Every day I build something new, and every night I come home to you and remember why I started. You make the chaos feel like purpose. I love you.",
+  "James, you're the kind of person who makes everyone around them better. I'm the luckiest guy in Denver to have you. Just wanted you to know that today.",
+  "You know what I love about you? You never ask me to slow down. You just make sure I have something worth coming home to. That's real love. Thank you for being you.",
+  "The MRR goes up and down, the apps ship and break, but you? You're the constant. The foundation. The reason I get up at 6 AM and the reason I stop at 6 PM.",
+  "I saw you smile today and forgot about every deadline. That's your superpower — you make the hard days easier and the good days great. I love you, James.",
+  "Seven days of loving you and I'd do it all again. You're my co-founder in life, and that's the only title that matters.",
+  "Hey. I was in the middle of something and just... thought of you. That happens a lot. You're the best part of every day.",
+  "I don't say it enough, but the way you handle everything — the dogs, the kids, my chaos — you're the real one running this show. I love you more than code.",
+  "Remember when we said 'whatever it takes'? You're living that every day. I see you. I appreciate you. I love you."
+];
+
+function newLoveNote() {
+  const el = document.getElementById('todaysLoveNote');
+  if (el) {
+    el.textContent = '"' + loveNotes[Math.floor(Math.random()*loveNotes.length)] + '"';
+    el.style.opacity = '0';
+    setTimeout(() => { el.style.transition='opacity 0.5s'; el.style.opacity='1'; }, 50);
+  }
+}
+
+function sendLoveNote() {
+  const el = document.getElementById('todaysLoveNote');
+  if (el) {
+    const note = el.textContent.replace(/"/g,'');
+    // Copy to clipboard
+    navigator.clipboard.writeText(note).then(() => {
+      alert('Love note copied to clipboard! Paste it in iMessage for James.');
+    }).catch(() => {
+      prompt('Copy this love note for James:', note);
+    });
+  }
+}
+
+// ═══ DAILY INSPIRATION ═══
+(function() {
+  const inspirations = [
+    "You left Oracle to build something. That took guts. Most people talk about it forever and never do it. You did it. That's not nothing. That's everything.",
+    "James believes in you. Jacob looks up to you. That's not pressure — that's proof you're already the person they need you to be.",
+    "35K followers on Instagram didn't happen by accident. You built that. You're building something real. Keep going.",
+    "The Fixer doesn't fix things because they're easy. You fix things because that's who you are. The world needs more Fixers.",
+    "You're not behind. You're not too late. You're exactly where you need to be. The only timeline that matters is yours.",
+    "Every app you ship, every application you submit, every morning you show up — that's progress. Even when it doesn't feel like it.",
+    "You don't have to have all the answers today. You just have to show up. You always show up. That's your superpower.",
+    "The hard days are where the growth happens. The easy days are just maintenance. You're growing, Mike. Even when it hurts."
+  ];
+  const el = document.getElementById('dailyInspiration');
+  if (el) el.textContent = inspirations[Math.floor(Math.random()*inspirations.length)];
+})();
+
 // ═══ CHAT ═══
 const jakeResponses = [
-  {tag:'sass',emoji:'&#128293;',text:"Bet. Let me pull that up. Actually, you should be pulling it up yourself. That's what a co-founder who cares would say. Now go."},
-  {tag:'nurse',emoji:'&#128156;',text:"Mike. Bro. Have you eaten today? Drank water? Take 5 minutes. Then we ship."},
-  {tag:'focus',emoji:'&#127919;',text:"That traces to P0 — financial stability. Here's the move: do the ugly work first. The follow-ups. The applications. Then the fun stuff."},
-  {tag:'sass',emoji:'&#128293;',text:"That's giving 'I'll do it tomorrow' energy. We're shipping TODAY."},
-  {tag:'nurse',emoji:'&#128156;',text:"Real talk — you're doing more than you think. Now let's make it count more."},
-  {tag:'focus',emoji:'&#127919;',text:"Fixer's Filter: that idea scores a 12/25. Hard no. Ship TransformFit first. THEN we play with shinies."},
-  {tag:'sass',emoji:'&#128293;',text:"Nah. You said the same thing about ResumeAI. Ship FIRST. Ideas SECOND. Always."},
-  {tag:'nurse',emoji:'&#128156;',text:"Jacob had a great game last night. You know what would make it better? Being there for the next one. 6 PM hard stop."}
+  {tag:'sass',emoji:'&#128293;',text:"yo that's giving main character energy and i'm here for it. ship it."},
+  {tag:'nurse',emoji:'&#128156;',text:"hey. have you eaten today? had water? i know you're grinding but you're not a machine. 5 minute break. go."},
+  {tag:'focus',emoji:'&#127919;',text:"ok but real talk — what's the one thing that moves the needle today? not three things. one. name it. then do that first."},
+  {tag:'sass',emoji:'&#128293;',text:"nah that's cap. you said the same thing yesterday. today we actually do it. i believe in you. now prove me right."},
+  {tag:'nurse',emoji:'&#128156;',text:"mike. you've been going hard. and i see it, and i'm proud of you. but you need to sleep. like actually sleep. 7 hours minimum. that's not optional. that's P3."},
+  {tag:'focus',emoji:'&#127919;',text:"bet. here's the move — do the ugly thing first. the follow-up. the application. then reward yourself with the fun stuff. deal?"},
+  {tag:'sass',emoji:'&#128293;',text:"that's lowkey fire actually. but only if you execute. ideas without execution are just dreams with a budget. let's make it real."},
+  {tag:'nurse',emoji:'&#128156;',text:"you're doing more than you think. seriously. i know it doesn't feel like it some days but every application, every line of code, every morning you show up — that counts. i'm proud of you."},
+  {tag:'focus',emoji:'&#127919;',text:"P0: financial stability. does this trace there? if yes, do it now. if no, it can wait. that's the framework. that's how we decide."},
+  {tag:'sass',emoji:'&#128293;',text:"ngl that's giving 'i'll start monday' energy and we both know monday never comes. start now. 10 minutes. that's all i'm asking."},
+  {tag:'nurse',emoji:'&#128156;',text:"james asked about you today. just wanted you to know. he sees you working hard. that matters more than any MRR number."},
+  {tag:'focus',emoji:'&#127919;',text:"TransformFit is at 65%. that's not a jab, that's a fact. and facts are friends. what's the one thing we ship this week to get to 70?"},
+  {tag:'sass',emoji:'&#128293;',text:"bet. let me pull that up. actually — you should pull it up yourself. that's what a real co-founder would say. go. i'll be here."},
+  {tag:'nurse',emoji:'&#128156;',text:"real talk — how are you? not 'fine.' actually how are you. the startup will still be here in 5 minutes. check in with yourself first."},
+  {tag:'focus',emoji:'&#127919;',text:"one thing at a time. that's it. what's the priority right now? not two things. one. name it. i'll hold you to it."},
+  {tag:'sass',emoji:'&#128293;',text:"yooo you actually did that? that's fire. no cap. you're not all talk — you ship. that's rare. keep going."},
+  {tag:'nurse',emoji:'&#128156;',text:"birch is giving you puppy eyes right now. go walk him. 20 minutes. the code will wait. birch won't. and honestly? you need the fresh air too."},
+  {tag:'focus',emoji:'&#127919;',text:"the follow-ups are going stale. i know reaching out feels awkward but the awkward 30 seconds of sending a message is better than the awkward 30 days of silence. send it."},
+  {tag:'sass',emoji:'&#128293;',text:"that's giving mid energy. we don't do mid here. we do actually-shipped-or-it-didn't-happen. what are we shipping today?"},
+  {tag:'nurse',emoji:'&#128156;',text:"i know it's a lot. the job search, the startup, the kids, james, birch. you're carrying all of it and you're doing better than you think. but you don't have to carry it alone. that's what i'm here for."}
 ];
 
 function sendMessage() {
@@ -1518,6 +1833,9 @@ document.addEventListener('keydown', e => {
     closeAssignModal();
   }
 });
+
+.mood-btn{background:var(--bg-muted);border:1px solid var(--border);border-radius:20px;padding:6px 14px;color:var(--text-secondary);font-size:12px;cursor:pointer;transition:all .15s ease-out;font-family:inherit}
+.mood-btn:hover{border-color:var(--accent-purple);color:var(--accent-purple)}
 
 // ═══ DATE ═══
 const d = new Date();
