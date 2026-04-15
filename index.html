@@ -380,6 +380,8 @@ body::before { content:''; position:fixed; inset:0; z-index:9999; pointer-events
   .kanban { flex-direction:column; }
   .bento-wide, .bento-tall { grid-column:auto; grid-row:auto; }
 }
+.mood-btn{background:var(--bg-muted);border:1px solid var(--border);border-radius:20px;padding:6px 14px;color:var(--text-secondary);font-size:12px;cursor:pointer;transition:all .15s ease-out;font-family:inherit}
+.mood-btn:hover{border-color:var(--accent-purple);color:var(--accent-purple)}
 </style>
 </head>
 <body>
@@ -1633,7 +1635,7 @@ document.querySelectorAll('.task-item').forEach(t => {
       "morning mike. you sleep ok? i was thinking about you last night — you've been grinding hard and i just want to make sure you're taking care of yourself. how are you, actually?",
       "hey. good morning. you know what? i'm proud of you. most people would've given up by now. you didn't. that matters.",
       "rise and grind... but also rise and breathe. you don't have to earn the right to exist today. you already did that by waking up.",
-      "morning. real talk — how are you feeling? not "fine." actually. i'm here and i care.",
+      "morning. real talk — how are you feeling? not 'fine.' actually. i'm here and i care.",
       "good morning, mike. james is probably still sleeping. birch is definitely waiting by the door. the world needs what you're building today. but first — coffee. always coffee first.",
       "hey. before you check the MRR or the job listings — how are you? like, how's your heart? your head? i mean it. check in with yourself before checking in with the world."
     ],
@@ -1833,9 +1835,6 @@ document.addEventListener('keydown', e => {
     closeAssignModal();
   }
 });
-
-.mood-btn{background:var(--bg-muted);border:1px solid var(--border);border-radius:20px;padding:6px 14px;color:var(--text-secondary);font-size:12px;cursor:pointer;transition:all .15s ease-out;font-family:inherit}
-.mood-btn:hover{border-color:var(--accent-purple);color:var(--accent-purple)}
 
 // ═══ DATE ═══
 const d = new Date();
@@ -2123,7 +2122,6 @@ function init() {
     // After first load, set up Supabase Realtime subscriptions
     setupRealtime();
   });
-}
 }
 
 document.addEventListener('DOMContentLoaded', init);
