@@ -617,6 +617,15 @@ body::before { content:''; position:fixed; inset:0; z-index:9999; pointer-events
       <div id="aeonSkills" style="min-height:60px"></div>
     </div>
 
+    <!-- ═══ CAPABILITY DASHBOARD ═══ -->
+    <div class="section" id="capabilities">
+      <div class="section-header">
+        <h2>25X <span class="gradient">Arsenal</span></h2>
+        <p>23 integrated capabilities. From cloned repos to live features. This is what makes Jake 25X better.</p>
+      </div>
+      <div id="capDashboard" style="min-height:60px"></div>
+    </div>
+
     <!-- ═══ FOCUS ═══ -->
     <div class="section" id="focus">
       <div class="section-header">
@@ -2256,6 +2265,57 @@ function renderAeonSkills() {
   container.innerHTML = html;
 }
 
+// ═══ CAPABILITY DASHBOARD ═══
+async function renderCapabilityDashboard() {
+  const container = document.getElementById('capDashboard');
+  if (!container) return;
+  container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:12px">Loading capabilities from Supabase...</div>';
+  try {
+    const caps = await sb.from('jake_capabilities').select('*');
+    if (!caps || caps.length === 0) {
+      container.innerHTML = '<div style="padding:16px;color:var(--text-secondary)">No capabilities found.</div>';
+      return;
+    }
+    const statusColors = {cloned:'#8b5cf6',integrating:'#f59e0b',integrated:'#10b981',live:'#22c55e',failed:'#ef4444'};
+    const priorityColors = {P0:'#ef4444',P1:'#f59e0b',P2:'#3b82f6',P3:'#6b7280'};
+    const phaseLabels = {1:'Phase 1 (Live)',2:'Phase 2 (Building)',3:'Phase 3 (Future)'};
+    const byPhase = {};
+    for (const c of caps) {
+      const p = c.phase || 2;
+      if (!byPhase[p]) byPhase[p] = [];
+      byPhase[p].push(c);
+    }
+    let html = '';
+    const stats = {total: caps.length, live: caps.filter(c=>c.status==='live').length, integrated: caps.filter(c=>c.status==='integrated').length, cloned: caps.filter(c=>c.status==='cloned').length};
+    html += '<div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">';
+    html += '<div style="background:var(--bg-muted);border:1px solid var(--border);border-radius:8px;padding:12px 16px;flex:1;min-width:120px"><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px">Total</div><div style="font-size:24px;font-weight:700;color:var(--accent-purple)">'+stats.total+'</div></div>';
+    html += '<div style="background:var(--bg-muted);border:1px solid var(--border);border-radius:8px;padding:12px 16px;flex:1;min-width:120px"><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px">Live</div><div style="font-size:24px;font-weight:700;color:#22c55e">'+stats.live+'</div></div>';
+    html += '<div style="background:var(--bg-muted);border:1px solid var(--border);border-radius:8px;padding:12px 16px;flex:1;min-width:120px"><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px">Integrated</div><div style="font-size:24px;font-weight:700;color:#10b981">'+stats.integrated+'</div></div>';
+    html += '<div style="background:var(--bg-muted);border:1px solid var(--border);border-radius:8px;padding:12px 16px;flex:1;min-width:120px"><div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px">Cloned</div><div style="font-size:24px;font-weight:700;color:#8b5cf6">'+stats.cloned+'</div></div>';
+    html += '</div>';
+    for (const [phase, phaseCaps] of Object.entries(byPhase).sort((a,b)=>a[0]-b[0])) {
+      html += '<div style="font-weight:600;color:var(--accent-purple);font-size:11px;text-transform:uppercase;letter-spacing:1px;margin-top:12px;padding-top:8px;border-top:1px solid var(--border)">'+(phaseLabels[phase]||'Phase '+phase)+' ('+phaseCaps.length+')</div>';
+      html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:6px;margin-top:6px">';
+      for (const c of phaseCaps.sort((a,b)=>(a.priority||'P2').localeCompare(b.priority||'P2'))) {
+        const sc = statusColors[c.status]||'#6b7280';
+        const pc = priorityColors[c.priority]||'#6b7280';
+        html += '<div style="background:var(--bg-muted);border:1px solid var(--border);border-radius:6px;padding:10px 12px">';
+        html += '<div style="display:flex;justify-content:space-between;align-items:center">';
+        html += '<span style="font-size:12px;font-weight:500;color:var(--text-primary)">'+c.capability+'</span>';
+        html += '<span style="font-size:9px;padding:1px 6px;border-radius:4px;background:'+sc+'22;color:'+sc+';border:1px solid '+sc+'44">'+c.status.toUpperCase()+'</span>';
+        html += '</div>';
+        html += '<div style="font-size:10px;color:var(--text-muted);margin-top:2px">'+c.owner+'/'+c.repo+' <span style="color:'+pc+';font-weight:600">'+c.priority+'</span></div>';
+        if (c.description) html += '<div style="font-size:11px;color:var(--text-secondary);margin-top:4px;line-height:1.4">'+c.description.substring(0,100)+'</div>';
+        html += '</div>';
+      }
+      html += '</div>';
+    }
+    container.innerHTML = html;
+  } catch(err) {
+    container.innerHTML = '<div style="padding:16px;color:var(--accent-red)">Error loading capabilities: '+err.message+'</div>';
+  }
+}
+
 // ═══ INIT ═══
 function init() {
   // Show loading state immediately
@@ -2271,6 +2331,8 @@ function init() {
     setupRealtime();
     // Render Aeon skills dashboard
     renderAeonSkills();
+    // Render capability dashboard from Supabase
+    renderCapabilityDashboard();
   });
 }
 
