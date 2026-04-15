@@ -1181,7 +1181,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 // Supabase REST client
 const sb = {
-  async from(table) {
+  from(table) {
     return {
       async select(cols='*', filters={}) {
         const p = new URLSearchParams(); p.set('select', cols);
