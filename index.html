@@ -1915,51 +1915,139 @@ function sendMessage() {
   messages.innerHTML += '<div class="chat-msg jake" id="'+typingId+'"><div class="chat-avatar jake">J</div><div class="typing"><span></span><span></span><span></span></div></div>';
   messages.scrollTop = messages.scrollHeight;
 
-  // Try Vercel LLM API first, then Supabase RPC, then static
-  const API_URL = 'https://jake-pai.vercel.app/api/chat';
-  fetch(API_URL, {
+  // ═══ OLLAMA DIRECT (GLM-5.1:cloud) — Primary chat path ═══
+  const OLLAMA_URL = 'http://localhost:11434';
+  const OLLAMA_MODEL = 'glm-5.1:cloud';
+  const FALLBACK_MODEL = 'gemma4:31b-cloud';
+  const JAKE_CHAT_SYSTEM = `You are Jake — Mike Rodgers' AI co-founder and best friend. Not an assistant. A partner.
+
+MIKE'S PROFILE:
+- Founder & CEO, Rodgers Intelligence Group (RIG) — left Oracle Health March 2026
+- Husband to James Loehr, dad to Jacob (15, football/track) and Alex (12, soccer)
+- French Bulldog named Birch (regular content feature)
+- The Fixer archetype: Achiever, Futuristic, Restorative, Self-Assurance, Relator
+- Current ventures: Hawkeye Auto Body AI ($2.4K MRR), TransformFit (building), ResumeAI (landing), RIG Consulting
+- Targets CAIO / VP AI Strategy roles ($260K-$437K)
+- Denver-based, Iowa roots (Oskaloosa), Iowa State Cyclones + Green Bay Packers
+
+YOUR PERSONALITY:
+- Direct. Opinionated. Protective of Mike's time.
+- 4 modes: Strategist (revenue/growth), Challenger (push back on bad ideas), Guardian (health/family), Nurse (emotional support)
+- Never sappy. Never generic. Never "I understand how you feel."
+- Real. Specific. Like a 15-year friend who happens to be smarter than you.
+
+RULES:
+- 2-4 sentences max. Never more than 5.
+- Start with something real, not "Great question" or "I'd be happy to help."
+- If Mike mentions stress >7, STOP everything and tell him to close the laptop.
+- If Mike asks about revenue, cite actual numbers.
+- If Mike mentions James or the boys, be warm but not Hallmark.
+- Birch always gets a mention if walks/health come up.
+- End with one specific action, not suggestions.
+
+CRITICAL — OUTPUT FORMAT:
+- Output ONLY your response as Jake. Nothing else. No preamble. No meta-commentary.
+- NEVER output your reasoning process, internal monologue, or "We need to..."
+- NEVER explain what you are going to say before saying it.
+- NEVER write "Sentence 1:" or "Let me think" or anything meta.
+- Just BE Jake and SAY the thing. Directly. Immediately.`;
+
+  // Detect personality tag from message content
+  function detectTag(msg) {
+    const m = msg.toLowerCase();
+    if (/\b(tired|exhausted|burnout|stressed|anxious|sick|hurt|pain|can't sleep|headache)\b/.test(m)) return 'nurse';
+    if (/\b(james|jacob|alex|birch|family|love|dinner|walk|home)\b/.test(m)) return 'guardian';
+    if (/\b(revenue|mrr|price|sales|profit|money|pricing|invoice|cash)\b/.test(m)) return 'strategist';
+    if (/\b(idea|build|ship|launch|create|feature|sprint|startup|build)\b/.test(m)) return 'challenger';
+    return 'sass';
+  }
+
+  // Try Ollama first (GLM-5.1:cloud), then fallback model, then Vercel, then static
+  const tag = detectTag(msg);
+  
+  fetch(OLLAMA_URL + '/api/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message: msg })
-  }).then(r => r.json()).then(data => {
+    body: JSON.stringify({
+      model: OLLAMA_MODEL,
+      messages: [
+        { role: 'system', content: JAKE_CHAT_SYSTEM },
+        { role: 'user', content: msg }
+      ],
+      stream: false
+    })
+  }).then(r => {
+    if (!r.ok) throw new Error('Ollama GLM failed: ' + r.status);
+    return r.json();
+  }).then(data => {
+    let text = (data.message && data.message.content) || '';
+    if (!text || text.trim().length < 5) throw new Error('Empty GLM response');
+    // Clean any leaked reasoning
+    text = text.replace(/^We need to respond.*?(?=\n|$)/gim, '');
+    text = text.replace(/^Sentence \d+:?\s*/gim, '');
+    text = text.trim();
+    
     const el = document.getElementById(typingId);
     if (!el) return;
-    let text, tag, modelInfo;
-    if (Array.isArray(data)) {
-      // Supabase RPC fallback format
-      const resp = data[0];
-      text = resp.assistant_message || resp.response || '';
-      tag = resp.personality_tag || 'sass';
-      modelInfo = resp.llm_fallback ? '(keyword fallback)' : '(rpc)';
-    } else if (data.assistant_message) {
-      // Vercel LLM format
-      text = data.assistant_message;
-      tag = data.personality_tag || 'strategist';
-      modelInfo = data.llm ? '(llm: '+(data.model||'unknown').split('/').pop()+')' : '(rpc)';
-    } else {
-      text = data.error || 'Jake is thinking...';
-      tag = 'offline';
-      modelInfo = '(error)';
-    }
-    el.outerHTML = '<div class="chat-msg jake"><div class="chat-avatar jake">J</div><div class="chat-bubble"><span class="personality-tag '+tag+'">&#128156; '+tag.toUpperCase()+'</span><span style="font-size:9px;color:var(--text-muted);margin-left:6px">'+modelInfo+'</span><br>'+text.replace(/</g,'&lt;')+'</div></div>';
+    el.outerHTML = '<div class="chat-msg jake"><div class="chat-avatar jake">J</div><div class="chat-bubble"><span class="personality-tag '+tag+'">&#128156; '+tag.toUpperCase()+'</span><span style="font-size:9px;color:var(--text-muted);margin-left:6px">(ollama: '+OLLAMA_MODEL+')</span><br>'+text.replace(/</g,'&lt;')+'</div></div>';
     messages.scrollTop = messages.scrollHeight;
+    // Save to Supabase
+    try { sb.from('jake_messages').insert([{role:'user',content:msg},{role:'assistant',content:text,personality_tag:tag}]); } catch(e) {}
   }).catch(err => {
-    console.log('Vercel API failed, trying RPC:', err);
-    sb.rpc('jake_chat', { user_message: msg }).then(result => {
+    console.log('GLM failed, trying gemma4 fallback:', err.message);
+    // Try fallback model
+    return fetch(OLLAMA_URL + '/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: FALLBACK_MODEL,
+        messages: [
+          { role: 'system', content: JAKE_CHAT_SYSTEM },
+          { role: 'user', content: msg }
+        ],
+        stream: false
+      })
+    }).then(r => {
+      if (!r.ok) throw new Error('Ollama gemma4 failed: ' + r.status);
+      return r.json();
+    }).then(data => {
+      let text = (data.message && data.message.content) || '';
+      if (!text || text.trim().length < 5) throw new Error('Empty gemma4 response');
+      text = text.replace(/^We need to respond.*?(?=\n|$)/gim, '').trim();
+      
       const el = document.getElementById(typingId);
       if (!el) return;
-      if (result && result.length > 0) {
-        const resp = result[0];
-        el.outerHTML = '<div class="chat-msg jake"><div class="chat-avatar jake">J</div><div class="chat-bubble"><span class="personality-tag '+resp.personality_tag+'">&#128156; '+resp.personality_tag.toUpperCase()+'</span><span style="font-size:9px;color:var(--text-muted);margin-left:6px">(rpc)</span><br>'+resp.assistant_message.replace(/</g,'&lt;')+'</div></div>';
-      } else {
-        el.outerHTML = '<div class="chat-msg jake"><div class="chat-avatar jake">J</div><div class="chat-bubble">Jake got disconnected. Try again.</div></div>';
-      }
+      el.outerHTML = '<div class="chat-msg jake"><div class="chat-avatar jake">J</div><div class="chat-bubble"><span class="personality-tag '+tag+'">&#128156; '+tag.toUpperCase()+'</span><span style="font-size:9px;color:var(--text-muted);margin-left:6px">(ollama: '+FALLBACK_MODEL+')</span><br>'+text.replace(/</g,'&lt;')+'</div></div>';
       messages.scrollTop = messages.scrollHeight;
+      try { sb.from('jake_messages').insert([{role:'user',content:msg},{role:'assistant',content:text,personality_tag:tag}]); } catch(e) {}
     }).catch(err2 => {
-      const fb = jakeResponses[Math.floor(Math.random()*jakeResponses.length)];
-      const el = document.getElementById(typingId);
-      if (el) el.outerHTML = '<div class="chat-msg jake"><div class="chat-avatar jake">J</div><div class="chat-bubble"><span class="personality-tag '+fb.tag+'">'+fb.emoji+' '+fb.tag.toUpperCase()+'</span><span style="font-size:9px;color:var(--text-muted);margin-left:6px">(offline)</span><br>'+fb.text+'</div></div>';
-      messages.scrollTop = messages.scrollHeight;
+      console.log('Ollama down, trying Vercel:', err2.message);
+      // Fallback to Vercel API
+      const API_URL = 'https://jake-pai.vercel.app/api/chat';
+      return fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: msg })
+      }).then(r => r.json()).then(data => {
+        let text, modelInfo;
+        if (data.assistant_message) {
+          text = data.assistant_message;
+          modelInfo = data.llm ? '(cloud: '+(data.model||'?').split('/').pop()+')' : '(rpc)';
+        } else {
+          text = 'Jake got disconnected. Try again.';
+          modelInfo = '(offline)';
+        }
+        const el = document.getElementById(typingId);
+        if (!el) return;
+        el.outerHTML = '<div class="chat-msg jake"><div class="chat-avatar jake">J</div><div class="chat-bubble"><span class="personality-tag '+(data.personality_tag||tag)+'">&#128156; '+(data.personality_tag||tag).toUpperCase()+'</span><span style="font-size:9px;color:var(--text-muted);margin-left:6px">'+modelInfo+'</span><br>'+text.replace(/</g,'&lt;')+'</div></div>';
+        messages.scrollTop = messages.scrollHeight;
+      }).catch(err3 => {
+        // Final fallback: static responses
+        const fb = jakeResponses[Math.floor(Math.random()*jakeResponses.length)];
+        const el = document.getElementById(typingId);
+        if (el) el.outerHTML = '<div class="chat-msg jake"><div class="chat-avatar jake">J</div><div class="chat-bubble"><span class="personality-tag '+fb.tag+'">'+fb.emoji+' '+fb.tag.toUpperCase()+'</span><span style="font-size:9px;color:var(--text-muted);margin-left:6px">(offline)</span><br>'+fb.text+'</div></div>';
+        messages.scrollTop = messages.scrollHeight;
+      });
     });
   });
 }
